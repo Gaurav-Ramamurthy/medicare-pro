@@ -1,0 +1,972 @@
+{% extends "core/base.html" %}
+{% load tz %}
+{% load humanize %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+/* Buttons: soft square */
+.button, input[type="submit"] {
+  background: #00bcd4;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0,188,212,0.25);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.button:hover, input[type="submit"]:hover {
+  background: #0097a7;
+  box-shadow: 0 10px 24px rgba(0,188,212,0.3);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  background: #ffffff;
+  color: #374151;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: none;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+}
+.btn-ghost:hover { background: #f9fafb; }
+.btn-link:hover { 
+  color: #0097a7;
+  text-decoration: underline!important;
+  text-decoration-color: #00bcd4;
+  text-underline-offset: 2px;
+  background: none;
+  transform: none;
+}
+
+/* Delete button - red text with red underline on hover */
+.btn-danger { 
+  background: none;
+  color: #dc2626;
+  border: none;
+  box-shadow: none;
+  padding: 4px 6px;
+  font-size: 0.85rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+.btn-danger:hover { 
+  color: #b91c1c;
+  text-decoration: underline!important;
+  text-decoration-color: #dc2626;
+  text-underline-offset: 2px;
+  background: none;
+  transform: none;
+}
+
+/* Layout */
+.container { max-width: 1200px; margin: 32px auto; padding: 0 16px; }
+.card-lg {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(15,23,42,0.15);
+  border: none;
+}
+.card-body { padding: 28px 28px 24px; }
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.page-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+.page-subtitle {
+  color: #6b7280;
+  margin-top: 4px;
+  font-size: 0.95rem;
+}
+
+/* Upload section */
+.fixed-form-section {
+  background: #f9fafb;
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid #e5f3f6;
+  margin-bottom: 20px;
+}
+.fixed-form-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 5px;
+}
+input[type="text"], input[type="number"], textarea, input[type="file"] {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+}
+input:focus, textarea:focus {
+  border-color: #00bcd4;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0,188,212,0.25);
+}
+
+/* Upload row */
+.upload-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.file-upload-area {
+  flex: 1;
+  border-radius: 10px;
+  border: 1px dashed #cbd5f5;
+  padding: 10px;
+  background: #f3f4ff;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+.file-preview {
+  width: 180px;
+  min-height: 80px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: none;
+  padding: 6px;
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+.file-preview iframe,
+.file-preview img {
+  width: 100%;
+  height: 140px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  object-fit: cover;
+}
+
+/* Note textarea */
+.note-textarea-wrapper { display: none; margin-top: 10px; }
+.note-textarea-wrapper.active { display: block; }
+
+/* Tabs */
+.tab-pills-container {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  margin-top: 8px;
+}
+.tab-pill {
+  border-radius: 999px;
+  padding: 8px 22px;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.tab-pill.active {
+  background: #00bcd4;
+  color: #ffffff;
+  box-shadow: 0 10px 26px rgba(0,188,212,0.45);
+}
+.tab-pill:hover:not(.active) { background: #e0f2fe; }
+
+/* Search bar */
+.search-filter-bar {
+  margin-top: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.search-wrapper { flex: 1; }
+.search-input {
+  width: 100%;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  color: #334155;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 3px rgba(0,188,212,0.1);
+}
+.search-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.btn-search-records {
+  padding: 10px 24px;
+  background: #00bcd4;
+  color: #fff;
+  border: 2px solid #00bcd4;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-search-records:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+
+/* Filter button + dropdown */
+.filter-dropdown { position: relative; }
+.btn-filter-toggle {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+  padding: 0;
+}
+.btn-filter-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+.btn-filter-toggle svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+.filter-menu {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 6px;
+  min-width: 170px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 9999;
+  pointer-events: none;
+}
+.filter-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.filter-menu .filter-option {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 500;
+}
+.filter-menu .filter-option:hover {
+  background: #f8fafc;
+  color: #00bcd4;
+}
+.filter-menu .filter-option.active {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+/* Records (simple rows) */
+.records-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 18px 0 8px;
+}
+.record-row {
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.record-row:hover { background: #f9fafb; }
+.record-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.record-title {
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: #111827;
+}
+.record-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+.record-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Prescription cards – grid layout (side by side) */
+.prescription-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin: 18px 0 8px;
+}
+.prescription-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.05);
+  transition: all 0.2s;
+  min-height: 160px;
+}
+.prescription-card:hover {
+  box-shadow: 0 4px 16px rgba(15,23,42,0.08);
+  transform: translateY(-2px);
+}
+.prescription-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.prescription-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+.prescription-line {
+  font-size: 0.82rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+.prescription-meta {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+.prescription-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+.prescription-timer {
+  font-size: 0.75rem;
+  color: #f97316;
+  white-space: nowrap;
+}
+
+/* Notices */
+.notice {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Modal */
+.prescription-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.55);
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.prescription-modal.show { display: flex; }
+.modal-content {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 640px;
+  width: 100%;
+  padding: 22px 22px 18px;
+  box-shadow: 0 24px 70px rgba(15,23,42,0.6);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #9ca3af;
+  cursor: pointer;
+}
+.modal-patient-info {
+  font-size: 0.85rem;
+  color: #4b5563;
+  border-radius: 10px;
+  background: #f3f4ff;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.form-group { margin-bottom: 10px; }
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.modal-actions .btn { flex: 1; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card-body { padding: 20px 16px; }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .search-filter-bar { flex-direction: column; align-items: stretch; }
+  .search-actions { width: 100%; justify-content: flex-end; }
+  .btn-search-records { width: 100%; }
+  .btn { width: 100%; }
+  .upload-row { flex-direction: column; }
+  .file-preview { width: 100%; }
+  .prescription-card-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .prescription-card-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1025px) {
+  .prescription-card-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card card-lg">
+    <div class="card-body">
+      <!-- Header -->
+      <div class="page-header">
+        <div>
+          <h2>Medical Records & Prescriptions</h2>
+          <p class="page-subtitle">
+            {% if patient.first_name or patient.last_name %}
+              {{ patient.first_name }} {{ patient.last_name }}
+              {% if patient.user.email %} • {{ patient.user.email }}{% endif %}
+            {% else %}
+              {{ patient.user.email }}
+            {% endif %}
+          </p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a href="{% url 'patient_detail' patient.id %}" class="btn-custom btn-outline-custom">← Back</a>
+          {% if is_doctor %}
+          <button type="button" class="btn-custom btn-primary-custom" onclick="openPrescriptionModal()">Add Prescription</button>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Upload medical record -->
+      {% if can_add_notes %}
+      <div class="fixed-form-section">
+        <h4>Upload medical record</h4>
+        <form method="post" enctype="multipart/form-data" id="medicalRecordForm">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="record">
+
+          <div style="margin-bottom:12px;">
+            <label for="id_attachment">Attachment</label>
+            <div class="upload-row">
+              <div class="file-upload-area">
+                <input type="file" name="attachment" id="id_attachment"
+                       accept=".pdf,.jpg,.jpeg,.png">
+              </div>
+              <div id="filePreview" class="file-preview"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <label for="id_file_description">Description</label>
+            <input type="text" name="file_description" id="id_file_description"
+                   placeholder="e.g. Blood test report – Dec 2025">
+          </div>
+
+          <button type="submit" class="btn-custom btn-primary-custom" style="width:100%;margin-bottom:8px;">Save record</button>
+
+          <button type="button" class="btn-ghost" id="toggleNoteBtn"
+                  style="width:100%;margin-top:4px;" onclick="toggleNoteField()">
+            Add additional note
+          </button>
+
+          <div class="note-textarea-wrapper" id="noteTextWrapper">
+            <div style="margin-top:10px;">
+              <label for="{{ record_form.content.id_for_label }}">Additional notes</label>
+              {{ record_form.content }}
+            </div>
+            <button type="submit" class="btn-custom btn-primary-custom" style="width:100%;margin-top:8px;">Save with note</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+
+      <!-- Tabs -->
+      <div class="tab-pills-container">
+        <button class="tab-pill active" onclick="switchRecordsTab('records')">Records ({{ records|length }})</button>
+        <button class="tab-pill" onclick="switchRecordsTab('prescriptions')">Prescriptions ({{ prescriptions|length }})</button>
+      </div>
+
+      <!-- Search + filter -->
+      <div class="search-filter-bar">
+        <div class="search-wrapper">
+          <input type="text" id="searchInput" class="search-input"
+                 placeholder="Search by file name, notes, or medication">
+        </div>
+        <div class="search-actions">
+          <button type="button" class="btn-search-records" onclick="performSearch()">Search</button>
+
+          <div class="filter-dropdown">
+            <button type="button" class="btn-filter-toggle" id="filterToggle" aria-label="Sort">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+            </button>
+            <div class="filter-menu" id="filterMenu">
+              <button type="button" class="filter-option active" data-sort="newest">Newest first</button>
+              <button type="button" class="filter-option" data-sort="oldest">Oldest first</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Records list -->
+      <div id="recordsSection">
+        {% if records %}
+        <div class="records-grid" id="recordsList">
+          {% for r in records %}
+          {% with author_name=r.author.get_full_name|default:r.author.username %}
+          <div class="record-row"
+               data-created="{{ r.created_at|date:'U' }}"
+               data-search="{{ r.file_description|default:''|lower }} {{ r.content|default:''|lower }} {{ author_name|lower }}"
+               {% if r.attachment %}data-file-url="{{ r.attachment.url }}"{% endif %}>
+            <div class="record-main">
+              <div class="record-title">
+                {% if r.file_description %}
+                  {{ r.file_description|truncatechars:50 }}
+                {% else %}
+                  Medical record
+                {% endif %}
+              </div>
+              <div class="record-meta">
+                {{ author_name }} • {{ r.created_at|localtime|date:"M j, Y" }} {{ r.created_at|localtime|time:"H:i" }}
+              </div>
+              {% if r.content %}
+              <div class="record-meta">Notes: {{ r.content|truncatechars:120 }}</div>
+              {% endif %}
+            </div>
+            <div class="record-actions">
+              {% if user.is_authenticated and user.role == 'admin' or user.is_authenticated and user == r.author %}
+              <a href="{% url 'medical_record_edit' r.pk %}" class="btn-link" onclick="event.stopPropagation();">Edit</a>
+              <a href="{% url 'medical_record_delete' r.pk %}"
+                 class="btn-link btn-danger"
+                 onclick="event.stopPropagation(); return confirm('Delete this record?');">Delete</a>
+              {% endif %}
+            </div>
+          </div>
+          {% endwith %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="notice">No medical records available yet.</div>
+        {% endif %}
+      </div>
+
+      <!-- Prescriptions list (grid layout) -->
+      <div id="prescriptionsSection" style="display:none;">
+        {% if prescriptions %}
+        <div class="prescription-card-grid" id="prescriptionList">
+          {% for rx in prescriptions %}
+          <div class="prescription-card"
+               data-created="{{ rx.prescribed_date|date:'U' }}"
+               data-search="{{ rx.medication_name|lower }} {{ rx.dosage|lower }} {{ rx.frequency|lower }} {{ rx.duration|lower }} {{ rx.doctor.get_full_name|default:rx.doctor.username|lower }}">
+            <div class="prescription-main">
+              <div class="prescription-title">{{ rx.medication_name }}</div>
+              <div class="prescription-line">
+                <strong>Dosage:</strong> {{ rx.dosage }} mg
+              </div>
+              <div class="prescription-line">
+                <strong>Frequency:</strong> {{ rx.frequency }}× per day
+              </div>
+              <div class="prescription-line">
+                <strong>Duration:</strong> {{ rx.duration }} days
+              </div>
+              {% if rx.instructions %}
+              <div class="prescription-line">
+                <strong>Instructions:</strong> {{ rx.instructions|truncatechars:50 }}
+              </div>
+              {% endif %}
+              <div class="prescription-meta">
+                Dr. {{ rx.doctor.get_full_name|default:rx.doctor.username }}<br>
+                {{ rx.prescribed_date|date:"M j, Y H:i" }}
+              </div>
+            </div>
+            <div class="prescription-actions">
+              {% if is_doctor and rx.id in editable_prescription_ids %}
+              <button type="button"
+                      class="btn-ghost prescription-edit-btn"
+                      data-prescription-id="{{ rx.id }}"
+                      onclick="openPrescriptionEdit({{ rx.id }},
+                                                   '{{ rx.medication_name|escapejs }}',
+                                                   '{{ rx.dosage|escapejs }}',
+                                                   '{{ rx.frequency|escapejs }}',
+                                                   '{{ rx.duration|escapejs }}',
+                                                   '{{ rx.instructions|default_if_none:''|escapejs }}')">
+                Edit
+              </button>
+              <span class="prescription-timer" id="timer-{{ rx.id }}"></span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="notice">No prescriptions available yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if is_doctor %}
+<!-- Prescription modal -->
+<div id="prescriptionModal" class="prescription-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="prescriptionModalTitle">Add prescription</h3>
+      <button type="button" class="modal-close" onclick="closePrescriptionModal()">×</button>
+    </div>
+
+    <div class="modal-patient-info">
+      Patient: {{ patient.first_name }} {{ patient.last_name }} • {{ patient.user.email }}
+    </div>
+
+    <form id="prescriptionForm" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="prescription">
+      <input type="hidden" name="prescription_id" id="id_prescription_id">
+
+      <div class="form-group">
+        <label for="id_medication_name">Medication name *</label>
+        <input type="text" name="medication_name" id="id_medication_name" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="id_dosage">Dosage (mg) *</label>
+          <input type="number" name="dosage" id="id_dosage" min="1" step="1" required>
+        </div>
+        <div class="form-group">
+          <label for="id_frequency">Times per day *</label>
+          <input type="number" name="frequency" id="id_frequency" min="1" step="1" required>
+        </div>
+        <div class="form-group">
+          <label for="id_duration">Duration (days) *</label>
+          <input type="number" name="duration" id="id_duration" min="1" step="1" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="id_instructions">Instructions (optional)</label>
+        <textarea name="instructions" id="id_instructions" rows="3"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn-custom btn-primary-custom" id="prescriptionSubmitBtn">Save prescription</button>
+        <button type="button" class="btn-ghost" onclick="closePrescriptionModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+// Toggle extra note textarea
+function toggleNoteField() {
+  const wrapper = document.getElementById('noteTextWrapper');
+  const btn = document.getElementById('toggleNoteBtn');
+  if (!wrapper || !btn) return;
+  if (wrapper.classList.contains('active')) {
+    wrapper.classList.remove('active');
+    btn.textContent = 'Add additional note';
+  } else {
+    wrapper.classList.add('active');
+    btn.textContent = 'Hide additional note';
+  }
+}
+
+// File preview
+const attachmentInput = document.getElementById('id_attachment');
+if (attachmentInput) {
+  attachmentInput.addEventListener('change', function (e) {
+    const fileInput = e.target;
+    const preview = document.getElementById('filePreview');
+    if (!preview) return;
+    preview.innerHTML = '';
+    if (!fileInput.files || !fileInput.files[0]) {
+      preview.style.display = 'none';
+      return;
+    }
+    const file = fileInput.files[0];
+    const ext = file.name.split('.').pop().toLowerCase();
+    const url = URL.createObjectURL(file);
+
+    if (['jpg', 'jpeg', 'png'].includes(ext)) {
+      const img = document.createElement('img');
+      img.src = url;
+      preview.appendChild(img);
+    } else if (ext === 'pdf') {
+      const frame = document.createElement('iframe');
+      frame.src = url;
+      preview.appendChild(frame);
+    }
+    preview.style.display = 'block';
+  });
+}
+
+// Record row click
+function attachRecordRowClicks() {
+  document.querySelectorAll('#recordsList .record-row').forEach(row => {
+    const url = row.getAttribute('data-file-url');
+    if (!url) return;
+    row.addEventListener('click', function () {
+      window.open(url, '_blank', 'noopener');
+    });
+  });
+}
+attachRecordRowClicks();
+
+// Switch tabs
+function switchRecordsTab(tab) {
+  const records = document.getElementById('recordsSection');
+  const presc = document.getElementById('prescriptionsSection');
+  const pills = document.querySelectorAll('.tab-pill');
+  pills.forEach(p => p.classList.remove('active'));
+  if (tab === 'records') {
+    records.style.display = 'block';
+    presc.style.display = 'none';
+    pills[0].classList.add('active');
+  } else {
+    records.style.display = 'none';
+    presc.style.display = 'block';
+    pills[1].classList.add('active');
+  }
+}
+
+// Modal
+function openPrescriptionModal() {
+  const modal = document.getElementById('prescriptionModal');
+  if (!modal) return;
+  modal.classList.add('show');
+  document.getElementById('prescriptionModalTitle').textContent = 'Add prescription';
+  document.getElementById('prescriptionForm').reset();
+  document.getElementById('id_prescription_id').value = '';
+  document.getElementById('prescriptionSubmitBtn').textContent = 'Save prescription';
+  const firstInput = document.getElementById('id_medication_name');
+  if (firstInput) firstInput.focus();
+}
+
+function openPrescriptionEdit(id, name, dosage, frequency, duration, instructions) {
+  const modal = document.getElementById('prescriptionModal');
+  if (!modal) return;
+  modal.classList.add('show');
+  document.getElementById('prescriptionModalTitle').textContent = 'Edit prescription';
+  document.getElementById('id_prescription_id').value = id;
+  document.getElementById('id_medication_name').value = name;
+  document.getElementById('id_dosage').value = dosage;
+  document.getElementById('id_frequency').value = frequency;
+  document.getElementById('id_duration').value = duration;
+  document.getElementById('id_instructions').value = instructions || '';
+  document.getElementById('prescriptionSubmitBtn').textContent = 'Update prescription';
+}
+
+function closePrescriptionModal() {
+  const modal = document.getElementById('prescriptionModal');
+  if (!modal) return;
+  modal.classList.remove('show');
+}
+
+window.addEventListener('click', function (e) {
+  const modal = document.getElementById('prescriptionModal');
+  if (modal && e.target === modal) {
+    closePrescriptionModal();
+  }
+});
+
+// Search
+function performSearch() {
+  const term = document.getElementById('searchInput').value.toLowerCase();
+  [['recordsList','.record-row'], ['prescriptionList','.prescription-card']].forEach(([id, sel]) => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.querySelectorAll(sel).forEach(row => {
+      const data = (row.getAttribute('data-search') || '').toLowerCase();
+      row.style.display = data.includes(term) ? '' : 'none';
+    });
+  });
+}
+document.getElementById('searchInput').addEventListener('keyup', performSearch);
+
+// Sort
+function sortContainer(containerId, selector, order) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const rows = Array.from(container.querySelectorAll(selector));
+  rows.sort(function (a, b) {
+    const ta = parseInt(a.getAttribute('data-created')) || 0;
+    const tb = parseInt(b.getAttribute('data-created')) || 0;
+    return order === 'newest' ? tb - ta : ta - tb;
+  });
+  rows.forEach(r => container.appendChild(r));
+}
+
+// Filter dropdown
+const filterToggle = document.getElementById('filterToggle');
+const filterMenu = document.getElementById('filterMenu');
+
+if (filterToggle && filterMenu) {
+  filterToggle.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    filterMenu.classList.toggle('show');
+  });
+
+  document.addEventListener('click', e => {
+    if (!filterMenu.contains(e.target) && !filterToggle.contains(e.target)) {
+      filterMenu.classList.remove('show');
+    }
+  });
+
+  filterMenu.querySelectorAll('.filter-option').forEach(option => {
+    option.addEventListener('click', e => {
+      e.preventDefault();
+      filterMenu.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
+      option.classList.add('active');
+      const sort = option.getAttribute('data-sort') || 'newest';
+      sortContainer('recordsList', '.record-row', sort);
+      sortContainer('prescriptionList', '.prescription-card', sort);
+      filterMenu.classList.remove('show');
+    });
+  });
+}
+
+// Countdown timer for prescription edit
+function initPrescriptionCountdown() {
+  const now = Math.floor(Date.now() / 1000);
+  const btns = document.querySelectorAll('.prescription-edit-btn');
+  if (!btns.length) return;
+
+  const items = [];
+  btns.forEach(btn => {
+    const row = btn.closest('.prescription-card');
+    if (!row) return;
+    const created = parseInt(row.getAttribute('data-created'));
+    if (!created) return;
+    const totalWindow = 5 * 60;
+    const elapsed = now - created;
+    let remaining = totalWindow - elapsed;
+    if (remaining <= 0) {
+      btn.style.display = 'none';
+      const label = document.getElementById('timer-' + btn.dataset.prescriptionId);
+      if (label) label.textContent = '';
+      return;
+    }
+    items.push({btn, created, labelId: 'timer-' + btn.dataset.prescriptionId});
+  });
+
+  if (!items.length) return;
+
+  function tick() {
+    const current = Math.floor(Date.now() / 1000);
+    items.forEach(item => {
+      const elapsed = current - item.created;
+      const remaining = 5 * 60 - elapsed;
+      const label = document.getElementById(item.labelId);
+      if (remaining <= 0) {
+        item.btn.style.display = 'none';
+        if (label) label.textContent = '';
+        return;
+      }
+      const m = Math.floor(remaining / 60);
+      const s = remaining % 60;
+      if (label) {
+        label.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      }
+    });
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+initPrescriptionCountdown();
+</script>
+{% endblock %}

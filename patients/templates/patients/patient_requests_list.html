@@ -1,0 +1,929 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Patient Requests — MediCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+.requests-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 18px;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title-section h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.page-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-custom {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 2px solid;
+  transition: all 0.2s;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.btn-primary-custom {
+  background: #00bcd4;
+  color: #fff;
+  border-color: #00bcd4;
+}
+
+.btn-primary-custom:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+
+.btn-outline-custom {
+  background: #fff;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+
+.btn-outline-custom:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* Summary bar */
+.summary-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 2px 6px;
+  background: #f8fafc;
+  border-radius: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+/* SEARCH CARD – same pattern as history */
+.search-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.search-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Text input */
+.search-input-history {
+  flex: 1;
+  min-width: 250px;
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #334155;
+  transition: all 0.2s;
+}
+
+.search-input-history:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 3px rgba(0,188,212,0.1);
+}
+
+/* Search button */
+.btn-search {
+  padding: 10px 24px;
+  background: #00bcd4;
+  color: #fff;
+  border: 2px solid #00bcd4;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-search:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+
+/* Filter button + dropdown */
+.filter-dropdown {
+  position: relative;
+}
+
+.btn-filter-toggle {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+}
+
+.btn-filter-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.btn-filter-toggle:active {
+  background: #e2e8f0;
+}
+
+.btn-filter-toggle svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+  display: block;
+}
+
+.filter-menu {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 6px;
+  min-width: 170px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+.filter-menu.show {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+  display: block !important;
+}
+
+.filter-menu .filter-option {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.filter-menu .filter-option:hover {
+  background: #f8fafc;
+  color: #00bcd4;
+}
+
+.filter-menu .filter-option.active {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.search-status {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Card + table */
+.card-requests {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.card-header-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.card-header-custom h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.count-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.table-requests {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.table-requests thead {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.table-requests th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 700;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.table-requests td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.table-requests tbody tr:hover {
+  background: #f8fafc;
+}
+
+.action-link {
+  color: #00bcd4;
+  text-decoration: none;
+  font-weight: 600;
+  margin-right: 12px;
+  font-size: 0.9rem;
+}
+
+.action-link:hover {
+  text-decoration: underline;
+}
+
+.btn-approve {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 8px;
+  font-size: 0.85rem;
+}
+
+.btn-approve:hover {
+  background: #059669;
+}
+
+.btn-reject {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-reject:hover {
+  background: #dc2626;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: #94a3b8;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+/* Modals */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background: white;
+  max-width: 800px;
+  margin: 150px auto;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  padding: 24px;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.modal-body {
+  padding: 32px;
+}
+
+.modal-footer {
+  padding: 16px 32px 32px;
+  display: flex;
+  gap: 12px;
+}
+
+.modal-footer button {
+  flex: 1;
+  padding: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-confirm {
+  color: white;
+}
+
+.btn-approve-confirm {
+  background: #10b981;
+}
+
+.btn-approve-confirm:hover {
+  background: #059669;
+}
+
+.btn-reject-confirm {
+  background: #ef4444;
+}
+
+.btn-reject-confirm:hover {
+  background: #dc2626;
+}
+
+.patient-photo {
+  width: 110px;
+  height: 110px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 3px solid #e2e8f0;
+  margin-bottom: 12px;
+}
+
+.no-photo {
+  width: 110px;
+  height: 110px;
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .requests-wrapper {
+    padding: 16px 12px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-custom {
+    flex: 1;
+    text-align: center;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .search-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .search-input-history,
+  .btn-search {
+    width: 100%;
+  }
+
+  .filter-dropdown {
+    width: 100%;
+  }
+
+  .btn-filter-toggle {
+    width: 100%;
+  }
+
+  .filter-menu {
+    right: auto;
+    left: 0;
+    width: 100%;
+  }
+
+  .summary-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-requests {
+    padding: 14px;
+  }
+
+  .table-requests thead {
+    display: none;
+  }
+
+  .table-requests tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .table-requests td {
+    display: block;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left !important;
+  }
+
+  .table-requests td:before {
+    content: attr(data-label) ": ";
+    font-weight: 700;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    display: inline-block;
+    min-width: 90px;
+  }
+
+  .table-requests td:last-child {
+    border-bottom: none;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="requests-wrapper">
+
+  <div class="page-header">
+    <div class="page-title-section">
+      <h1>📋 Patient Requests</h1>
+      <div class="page-subtitle">Review and approve patient registrations</div>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'admin_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+    </div>
+  </div>
+
+  <!-- SEARCH FORM -->
+  <form id="requests-search-form" method="get" action="" class="search-card" autocomplete="off">
+    <div class="search-filters">
+      <input
+        id="requests-search-input"
+        name="q"
+        type="search"
+        value="{{ q|default:'' }}"
+        class="search-input-history"
+        placeholder="🔍 Search by name, email, phone..."
+        aria-label="Search patient requests"
+        autocomplete="off"
+      >
+
+      <button type="submit" class="btn-search">Search</button>
+
+      <input type="hidden" name="sort" id="sortInput" value="{{ sort|default:'newest' }}">
+
+      <div class="filter-dropdown">
+        <button type="button" class="btn-filter-toggle" id="filterToggle" aria-label="Filter options">
+          <svg xmlns="http://www.w3.org/2000/svg" 
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+        </button>
+        <div class="filter-menu" id="filterMenu">
+          <button type="button" class="filter-option {% if sort != 'oldest' %}active{% endif %}" data-value="newest">
+            Newest First
+          </button>
+          <button type="button" class="filter-option {% if sort == 'oldest' %}active{% endif %}" data-value="oldest">
+            Oldest First
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="search-status" class="search-status" aria-live="polite">
+      {% if q %}
+        Showing results for "<strong>{{ q }}</strong>"
+      {% elif sort == 'oldest' %}
+        Showing oldest first
+      {% else %}
+        Showing newest first
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- SUMMARY -->
+  <div class="summary-bar">
+    <div class="summary-info">Pending patient registration requests</div>
+    <div class="summary-info"><strong>Total:</strong> {{ requests|length|default:0 }}</div>
+  </div>
+
+  <!-- REQUESTS TABLE -->
+  <div class="card-requests">
+    <div class="card-header-custom">
+      <h2>Pending Requests</h2>
+      <span class="count-badge">{{ requests|length|default:0 }} Total</span>
+    </div>
+
+    {% if requests %}
+      <table class="table-requests">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Submitted</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          <tr>
+            <td data-label="Name" style="font-weight:600;">{{ req.first_name }} {{ req.last_name }}</td>
+            <td data-label="Username">{{ req.username }}</td>
+            <td data-label="Email">{{ req.email }}</td>
+            <td data-label="Phone">{{ req.phone }}</td>
+            <td data-label="Submitted" style="color:#059669;">{{ req.created_at|date:"M d, Y H:i" }}</td>
+            <td data-label="Actions">
+              <a href="javascript:void(0)" class="action-link view-link"
+                 data-id="{{ req.id }}"
+                 data-name="{{ req.first_name }} {{ req.last_name }}"
+                 data-username="{{ req.username }}"
+                 data-email="{{ req.email }}"
+                 data-phone="{{ req.phone }}"
+                 data-dob="{{ req.date_of_birth|date:'M d, Y' }}"
+                 data-gender="{{ req.gender|title }}"
+                 data-blood="{{ req.blood_group|default:'' }}"
+                 data-emergency="{{ req.emergency_contact }}"
+                 data-address="{{ req.address }}"
+                 data-medical="{{ req.medical_history }}"
+                 data-photo="{% if req.photo %}{{ req.photo.url }}{% else %}#{% endif %}">
+                View
+              </a>
+              <button class="btn-approve approve-btn"
+                      data-id="{{ req.id }}"
+                      data-name="{{ req.first_name }} {{ req.last_name }}"
+                      data-username="{{ req.username }}"
+                      data-email="{{ req.email }}">
+                Approve
+              </button>
+              <button class="btn-reject reject-btn"
+                      data-id="{{ req.id }}"
+                      data-name="{{ req.first_name }} {{ req.last_name }}"
+                      data-username="{{ req.username }}"
+                      data-email="{{ req.email }}">
+                Reject
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">🎉</div>
+        <div style="font-size:1.1rem; font-weight:600; color:#64748b; margin-bottom:8px;">
+          No pending requests!
+        </div>
+        <div>All patient registrations are up to date.</div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- VIEW MODAL -->
+<div id="viewModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" style="background:#3b82f6;">Patient Details</div>
+    <div class="modal-body" id="viewDetails"></div>
+    <div class="modal-footer">
+      <button id="closeView" class="btn-cancel">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE MODAL -->
+<div id="approveModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" style="background:#10b981;">Confirm Approval</div>
+    <div class="modal-body" id="approveDetails"></div>
+    <div class="modal-footer">
+      <button id="cancelApprove" class="btn-cancel">Cancel</button>
+      <button id="confirmApprove" class="btn-confirm btn-approve-confirm">Approve Patient</button>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div id="rejectModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" style="background:#ef4444;">Confirm Rejection</div>
+    <div class="modal-body" id="rejectDetails"></div>
+    <div class="modal-footer">
+      <button id="cancelReject" class="btn-cancel">Cancel</button>
+      <button id="confirmReject" class="btn-confirm btn-reject-confirm">Reject Patient</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  let currentActionId = null;
+
+  function getCookie(name) {
+    let v = null;
+    if (document.cookie) {
+      document.cookie.split(';').forEach(c => {
+        const cookie = c.trim();
+        if (cookie.startsWith(name + '=')) {
+          v = decodeURIComponent(cookie.substring(name.length + 1));
+        }
+      });
+    }
+    return v;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  /* FILTER TOGGLE */
+  (function(){
+    const filterToggle = document.getElementById('filterToggle');
+    const filterMenu = document.getElementById('filterMenu');
+    const form = document.getElementById('requests-search-form');
+    const sortInput = document.getElementById('sortInput');
+
+    if (filterToggle && filterMenu) {
+      filterToggle.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        filterMenu.classList.toggle('show');
+      });
+
+      document.addEventListener('click', e => {
+        if (!filterMenu.contains(e.target) && !filterToggle.contains(e.target)) {
+          filterMenu.classList.remove('show');
+        }
+      });
+
+      filterMenu.querySelectorAll('.filter-option').forEach(option => {
+        option.addEventListener('click', e => {
+          e.preventDefault();
+          const value = option.getAttribute('data-value');
+          if (sortInput && form) {
+            sortInput.value = value === 'oldest' ? 'oldest' : 'newest';
+            filterMenu.classList.remove('show');
+            form.submit();
+          }
+        });
+      });
+    }
+
+    // Live search (submit after debounce)
+    const input = document.getElementById('requests-search-input');
+    const status = document.getElementById('search-status');
+    let timer = null;
+
+    function debounce(fn, ms) {
+      return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), ms);
+      }
+    }
+
+    const onInput = debounce(() => {
+      if (!status || !input) return;
+      const q = (input.value || '').trim();
+      status.innerHTML = q ? `Showing results for "<strong>${q}</strong>"` : 'Showing newest first';
+      document.getElementById('requests-search-form').submit();
+    }, 400);
+
+    if (input) {
+      input.addEventListener('input', onInput);
+    }
+  })();
+
+  /* VIEW MODAL */
+  document.querySelectorAll('.view-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const d = link.dataset;
+
+      let photoHtml = '';
+      if (d.photo && d.photo !== '#') {
+        photoHtml = `<img src="${d.photo}" alt="Patient photo" class="patient-photo">`;
+      } else {
+        photoHtml = `<div class="no-photo">No Photo</div>`;
+      }
+
+      document.getElementById('viewDetails').innerHTML = `
+        <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:16px;">
+          ${photoHtml}
+          <div style="font-size:16px;line-height:1.8;">
+            <p><strong>Name:</strong> ${d.name}</p>
+            <p><strong>Username:</strong> ${d.username}</p>
+            <p><strong>Email:</strong> ${d.email}</p>
+            <p><strong>Phone:</strong> ${d.phone}</p>
+          </div>
+        </div>
+        <div style="font-size:16px;line-height:1.8;">
+          <p><strong>DOB:</strong> ${d.dob}</p>
+          <p><strong>Gender:</strong> ${d.gender}</p>
+          <p><strong>Blood:</strong> ${d.blood || 'N/A'}</p>
+          <p><strong>Emergency:</strong> ${d.emergency || 'N/A'}</p>
+          <p><strong>Address:</strong> ${d.address}</p>
+          <p><strong>Medical History:</strong> ${d.medical || 'None'}</p>
+        </div>
+      `;
+      document.getElementById('viewModal').style.display = 'block';
+    });
+  });
+
+  document.getElementById('closeView').onclick = () => {
+    document.getElementById('viewModal').style.display = 'none';
+  };
+
+  /* APPROVE / REJECT – open modals */
+  document.querySelectorAll('.approve-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentActionId = btn.dataset.id;
+      document.getElementById('approveDetails').innerHTML = `
+        <p style="font-size:18px;margin-bottom:16px;">Approve this patient registration?</p>
+        <p><strong>Name:</strong> ${btn.dataset.name}</p>
+        <p><strong>Email:</strong> ${btn.dataset.email}</p>
+        <p style="color:#6b7280;font-size:14px;margin-top:12px;">This will create User + Patient accounts and remove this request.</p>
+      `;
+      document.getElementById('approveModal').style.display = 'block';
+    });
+  });
+
+  document.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentActionId = btn.dataset.id;
+      document.getElementById('rejectDetails').innerHTML = `
+        <p style="font-size:18px;margin-bottom:16px;">Reject this patient registration?</p>
+        <p><strong>Name:</strong> ${btn.dataset.name}</p>
+        <p><strong>Email:</strong> ${btn.dataset.email}</p>
+        <p style="color:#6b7280;font-size:14px;margin-top:12px;">This request will be permanently deleted.</p>
+      `;
+      document.getElementById('rejectModal').style.display = 'block';
+    });
+  });
+
+  document.getElementById('cancelApprove').onclick = () => {
+    document.getElementById('approveModal').style.display = 'none';
+  };
+  document.getElementById('cancelReject').onclick = () => {
+    document.getElementById('rejectModal').style.display = 'none';
+  };
+
+  window.onclick = (e) => {
+    if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+  };
+
+  /* CONFIRM APPROVE */
+  document.getElementById('confirmApprove').onclick = async () => {
+    const btn = document.getElementById('confirmApprove');
+    btn.disabled = true;
+    btn.innerHTML = 'Approving...';
+    try {
+      const r = await fetch(`/patient-requests/ajax/${currentActionId}/approve/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken }
+      });
+      const data = await r.json();
+      if (r.ok) {
+        btn.innerHTML = 'Approved!';
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        alert(data.error || 'Error approving');
+        btn.disabled = false;
+        btn.innerHTML = 'Approve Patient';
+      }
+    } catch {
+      alert('Network error');
+      btn.disabled = false;
+      btn.innerHTML = 'Approve Patient';
+    }
+  };
+
+  /* CONFIRM REJECT */
+  document.getElementById('confirmReject').onclick = async () => {
+    const btn = document.getElementById('confirmReject');
+    btn.disabled = true;
+    btn.innerHTML = 'Rejecting...';
+    try {
+      const r = await fetch(`/patient-requests/ajax/${currentActionId}/reject/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken }
+      });
+      const data = await r.json();
+      if (r.ok) {
+        btn.innerHTML = 'Rejected!';
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        alert(data.error || 'Error rejecting');
+        btn.disabled = false;
+        btn.innerHTML = 'Reject Patient';
+      }
+    } catch {
+      alert('Network error');
+      btn.disabled = false;
+      btn.innerHTML = 'Reject Patient';
+    }
+  };
+});
+</script>
+{% endblock %}

@@ -30,6 +30,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+#day 5 - add login redirect URL
+LOGIN_URL = "/login/"
+LOGOUT_REDIRECT_URL = "/login/"
+LOGIN_REDIRECT_URL = "/dashboards/post-login-redirect/"
+
 
 # Application definition
 
@@ -42,7 +47,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'patients',
+    'appointments',
+    'dashboards',
+    'medical',
+    'users',
+    'django.contrib.humanize'
 ]
+
+AUTH_USER_MODEL = "core.User"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -52,6 +64,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.RoleRequiredMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'medicare.urls'
@@ -59,7 +73,7 @@ ROOT_URLCONF = 'medicare.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        "DIRS": [ str(BASE_DIR / "core" / "templates") ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -86,6 +100,7 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD', 'medicare_pass'),
         'HOST': os.getenv('DB_HOST', '127.0.0.1'),
         'PORT': os.getenv('DB_PORT', '3306'),
+        'CONN_MAX_AGE': 0,
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
@@ -116,7 +131,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -126,9 +141,71 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [ str(BASE_DIR / "static") ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# configure paths -> allowed roles
+ROLE_REQUIRED_PATHS = {
+    # examples:
+    "/admin-only/": ["admin"],                # pages under this prefix only admin
+    "/receptionist/": ["receptionist", "admin"],    # receptionists and admins
+    "/doctors/": ["doctor", "admin"],         # doctors and admins
+    # add any path prefixes you want protected
+}
+
+# --- Email configuration (read from .env or environment) ---
+def _bool_env(name, default=False):
+    v = os.environ.get(name)
+    if v is None:
+        return default
+    return str(v).lower() in ("1", "true", "yes", "on")
+
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_USE_TLS = _bool_env("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = _bool_env("EMAIL_USE_SSL", False)
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "webmaster@localhost")
+
+# helpful debug -> prints to console when server starts (only when DEBUG=True)
+if DEBUG:
+    try:
+        print(">>> EMAIL settings (loaded):", EMAIL_BACKEND, EMAIL_HOST, EMAIL_PORT, "TLS=", EMAIL_USE_TLS, "USER=", EMAIL_HOST_USER)
+    except Exception:
+        pass
+# --- Email configuration (read from .env or environment) ---
+def _bool_env(name, default=False):
+    v = os.environ.get(name)
+    if v is None:
+        return default
+    return str(v).lower() in ("1", "true", "yes", "on")
+
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_USE_TLS = _bool_env("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = _bool_env("EMAIL_USE_SSL", False)
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "webmaster@localhost")
+
+# helpful debug -> prints to console when server starts (only when DEBUG=True)
+if DEBUG:
+    try:
+        print(">>> EMAIL settings (loaded):", EMAIL_BACKEND, EMAIL_HOST, EMAIL_PORT, "TLS=", EMAIL_USE_TLS, "USER=", EMAIL_HOST_USER)
+    except Exception:
+        pass
+
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'   # if BASE_DIR is Path

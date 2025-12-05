@@ -1,0 +1,1287 @@
+{% extends "core/base.html" %}
+{% load tz %}
+{% load humanize %}
+{% load static %}
+
+
+{% block title %}{{ patient.first_name }} {{ patient.last_name }} — Patient Profile{% endblock %}
+
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* { box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.6;
+  background: #f4f8fc;
+}
+
+/* ======== GLOBAL BUTTON STYLE (BOX) ========= */
+.btn-custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 20px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 0.94rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.16s ease;
+  box-shadow: 0 3px 10px rgba(0, 191, 214, 0.3);
+}
+.btn-primary-custom {
+  background: #00c3d7;
+  color: #ffffff;
+}
+.btn-primary-custom:hover {
+  background: #00aec0;
+  box-shadow: 0 4px 14px rgba(0, 191, 214, 0.4);
+}
+.btn-outline-custom {
+  background: #ffffff;
+  color: #4b5563;
+  border-color: #d0e3f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+.btn-outline-custom:hover {
+  background: #f4fbff;
+  border-color: #b7d6eb;
+}
+.btn-link, .link {
+  background: none;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  color: #00a0c4;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+.btn-link:hover, .link:hover {
+  color: #0083a2;
+  text-decoration: underline;
+}
+
+/* ======== LAYOUT & CARDS ========= */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 16px 24px 16px;
+}
+.frame {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.14);
+  border: 1px solid #e2edf7;
+  padding: 22px 22px 24px 22px;
+  margin-bottom: 18px;
+}
+.inner-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2edf7;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
+  padding: 16px 18px;
+}
+
+/* ======== PROFILE HEADER + BIG PHOTO ========= */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.profile-main {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.profile-photo-wrapper {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 3px solid #00c3d7;
+  box-shadow: 0 12px 30px rgba(0, 191, 214, 0.45);
+  background: #e0f7fa;
+  flex-shrink: 0;
+}
+.profile-photo-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0ea5e9;
+  font-size: 2.4rem;
+  font-weight: 700;
+}
+.profile-header h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.2rem);
+  font-weight: 700;
+  color: #0f172a;
+}
+.profile-meta {
+  margin-top: 4px;
+  font-size: 0.96rem;
+  color: #6b7280;
+}
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ======== FIRST FRAME LAYOUT: DETAILS + MEDICAL INFO ========= */
+.top-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(260px, 0.9fr);
+  gap: 16px;
+  align-items: flex-start;
+  margin-top: 14px;
+}
+
+/* ======== PATIENT DETAILS GRID ========= */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+}
+.detail-item-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-bottom: 2px;
+}
+.detail-item-value {
+  font-size: 0.95rem;
+  color: #111827;
+  font-weight: 500;
+}
+.detail-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2edf7;
+}
+
+/* ======== HEADINGS / MISC ========= */
+h4 {
+  margin: 18px 0 10px;
+  font-size: 0.98rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #9ca3af;
+}
+h5 {
+  margin: 0 0 10px 0;
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #9ca3af;
+}
+.muted {
+  color: #9ca3af !important;
+  font-size: 0.83rem;
+}
+.hr-divider {
+  border: none;
+  border-top: 1px solid #e2edf7;
+  margin: 14px 0;
+}
+
+.badge {
+  background: #e0f7fa;
+  color: #047e92;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.notice {
+  background: #ecfeff;
+  color: #036672;
+  border-radius: 8px;
+  border: 1px solid #c4f1f6;
+  padding: 10px 11px;
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   MEDICAL HUB: TABS & SEARCH SYSTEM
+   ======================================== */
+.medhub-wrapper {
+  margin-top: 20px;
+}
+
+/* Tabs */
+.medhub-tabs {
+  display: inline-flex;
+  border-radius: 999px;
+  background: #e2f3ff;
+  padding: 4px;
+  margin: 10px 0 12px;
+}
+.medhub-tab {
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: #0369a1;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.medhub-tab.active {
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgba(15,23,42,0.12);
+  color: #0f172a;
+}
+
+/* Search card */
+.medhub-search-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.medhub-search-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.medhub-search-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #334155;
+  transition: all 0.2s;
+}
+.medhub-search-input:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 3px rgba(0,188,212,0.1);
+}
+.medhub-btn-search {
+  padding: 10px 24px;
+  background: #00bcd4;
+  color: #fff;
+  border: 2px solid #00bcd4;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.medhub-btn-search:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+
+/* Filter dropdown */
+.medhub-filter-dropdown { position: relative; }
+.medhub-btn-filter-toggle {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+}
+.medhub-btn-filter-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+.medhub-btn-filter-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+.medhub-filter-menu {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 6px;
+  min-width: 190px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 9999;
+  pointer-events: none;
+}
+.medhub-filter-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.medhub-filter-label {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f9fafb;
+  border-radius: 4px;
+  margin: 4px 6px;
+}
+.medhub-filter-option {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  color: #334155;
+  font-weight: 500;
+}
+.medhub-filter-option:hover {
+  background: #f8fafc;
+  color: #00bcd4;
+}
+.medhub-filter-option.active {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+.medhub-search-status {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Tab panels */
+.medhub-tab-panel {
+  display: none;
+}
+.medhub-tab-panel.active {
+  display: block;
+}
+
+/* Appointments slide container */
+#tabAppointments {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+/* ===== APPOINTMENTS TABLE STYLE (inside card) ===== */
+
+#tabAppointments {
+  background: #ffffff;
+  padding: 12px 4px 4px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+/* Wrapper around the table */
+.appointments-table-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(15,23,42,0.15);
+  border: none;
+  overflow: hidden;
+}
+
+/* Table element */
+.appointments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+/* Header row */
+.appointments-table thead tr {
+  background: #f4f7fb;
+}
+
+.appointments-table th {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  border-bottom: 1px solid #e5edf7;
+}
+
+/* Body rows */
+.appointments-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.appointments-table tbody tr:nth-child(even) {
+  background: #fbfdff;
+}
+
+.appointments-table tbody tr:hover {
+  background: #f5fbff;
+}
+
+/* Number column */
+.appt-col-index {
+  width: 40px;
+  color: #9ca3af;
+}
+
+/* Date + time stacked */
+.appt-date {
+  font-weight: 600;
+  color: #111827;
+}
+.appt-time {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* Doctor */
+.appt-doctor {
+  color: #111827;
+}
+
+/* Status pill */
+.appt-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.appt-status-scheduled {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+.appt-status-completed {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.appt-status-cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Actions */
+.appt-actions a {
+  font-size: 0.88rem;
+}
+
+/* Mobile: stack columns or hide index */
+@media (max-width: 640px) {
+  .appointments-table th.appt-col-index,
+  .appointments-table td.appt-col-index {
+    display: none;
+  }
+  .appointments-table th,
+  .appointments-table td {
+    padding: 10px 12px;
+  }
+}
+
+/* Appointment cards */
+.appointment-card {
+  border-radius: 12px;
+  border: 1px solid #e2edf7;
+  border-left: 5px solid #0284c7;
+  padding: 12px 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.1);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.2s;
+}
+.appointment-card:hover {
+  box-shadow: 0 8px 16px rgba(2, 132, 199, 0.2);
+  transform: translateX(4px);
+}
+.appointment-main {
+  font-size: 0.9rem;
+  color: #111827;
+}
+.appointment-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* ========================================
+   RECORDS & PRESCRIPTIONS GRID LAYOUT
+   (like medical records page)
+   ======================================== */
+
+/* Records slide container */
+#tabRecords {
+  background: #ffffff;
+  padding: 12px 4px 4px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+/* Prescriptions slide container */
+#tabPrescriptions {
+  background: #ffffff;
+  padding: 12px 4px 4px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+/* Records grid */
+.medhub-record-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+.medhub-record-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.06);
+  transition: all 0.2s;
+  min-height: 140px;
+  cursor: pointer;
+}
+.medhub-record-card:hover {
+  box-shadow: 0 4px 16px rgba(15,23,42,0.1);
+  transform: translateY(-2px);
+  border-color: #16a34a;
+}
+.medhub-record-title {
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+.medhub-record-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+.medhub-record-content {
+  font-size: 0.85rem;
+  color: #4b5563;
+  line-height: 1.4;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.medhub-record-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+  gap: 8px;
+}
+.medhub-record-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Prescriptions grid */
+.medhub-prescription-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+.medhub-prescription-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.05);
+  transition: all 0.2s;
+  min-height: 160px;
+}
+.medhub-prescription-card:hover {
+  box-shadow: 0 4px 16px rgba(15,23,42,0.08);
+  transform: translateY(-2px);
+  border-color: #a855f7;
+}
+.medhub-prescription-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+.medhub-prescription-line {
+  font-size: 0.82rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+.medhub-prescription-meta {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+.medhub-prescription-footer {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+  margin-top: auto;
+}
+
+/* Small card links */
+.medhub-card-link {
+  color: #00a0c4;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.medhub-card-link:hover {
+  color: #0083a2;
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .top-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-actions {
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 768px) {
+  .frame { padding: 18px 14px 20px 14px; }
+  .profile-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .profile-main {
+    justify-content: flex-start;
+  }
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  .medhub-search-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+  .medhub-search-input,
+  .medhub-btn-search,
+  .medhub-btn-filter-toggle {
+    width: 100%;
+  }
+  .medhub-filter-menu {
+    right: auto;
+    left: 0;
+    width: 100%;
+  }
+  .medhub-record-grid,
+  .medhub-prescription-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+  .medhub-record-grid,
+  .medhub-prescription-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+
+  <!-- FRAME 1: Patient header + details + medical info -->
+  <div class="frame">
+    <div class="profile-header">
+      <div class="profile-main">
+        <div class="profile-photo-wrapper">
+          {% if patient.photo %}
+            <img src="{{ patient.photo.url }}" alt="{{ patient.first_name }} {{ patient.last_name }}">
+          {% else %}
+            <div class="profile-placeholder">
+              {{ patient.first_name|first|default:"P" }}{{ patient.last_name|first|default:"T" }}
+            </div>
+          {% endif %}
+        </div>
+        <div>
+          <h2>{{ patient.first_name }} {{ patient.last_name }}</h2>
+          <div class="profile-meta">
+            {{ patient.email|default:"No email" }}{% if patient.phone %} • {{ patient.phone }}{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <a href="#" 
+           onclick="smartBack()" 
+           class="btn-custom btn-outline-custom"
+           id="smart-back-btn">← Back</a>
+        {% if patient.pk %}
+        <a href="{% url 'patient_medical_records' patient.pk %}" class="btn-custom btn-primary-custom" style="margin-left: 8px;">
+          Medical Records
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <hr class="hr-divider">
+
+    <div class="top-grid">
+      <!-- Patient details -->
+      <div class="inner-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h4 style="margin:0;">Patient Details</h4>
+          {% if user.is_authenticated and user.patient and user.patient.pk == patient.pk %}
+            {# Patient viewing own profile - hide edit #}
+          {% else %}
+            <a href="{% url 'patient_edit' patient.pk %}" class="btn-custom btn-primary-custom" style="padding:8px 16px;font-size:0.9rem;">
+              Edit
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="details-grid">
+          <div>
+            <div class="detail-item-label">First name</div>
+            <div class="detail-item-value">{{ patient.first_name|default:"—" }}</div>
+          </div>
+          <div>
+            <div class="detail-item-label">Last name</div>
+            <div class="detail-item-value">{{ patient.last_name|default:"—" }}</div>
+          </div>
+          <div>
+            <div class="detail-item-label">Email</div>
+            <div class="detail-item-value">{{ patient.email|default:"—" }}</div>
+          </div>
+          <div>
+            <div class="detail-item-label">Phone</div>
+            <div class="detail-item-value">{{ patient.phone|default:"—" }}</div>
+          </div>
+          <div>
+            <div class="detail-item-label">Gender</div>
+            <div class="detail-item-value">{{ patient.gender|default:"—" }}</div>
+          </div>
+          <div>
+            <div class="detail-item-label">Date of birth</div>
+            <div class="detail-item-value">
+              {% if patient.date_of_birth %}
+                {{ patient.date_of_birth|date:"M j, Y" }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+          </div>
+          <div>
+            <div class="detail-item-label">Blood group</div>
+            <div class="detail-item-value">{{ patient.blood_group|default:"—" }}</div>
+          </div>
+          <div>
+            <div class="detail-item-label">Emergency contact</div>
+            <div class="detail-item-value">{{ patient.emergency_contact|default:"—" }}</div>
+          </div>
+          <div>
+            <div class="detail-item-label">Address</div>
+            <div class="detail-item-value">{{ patient.address|default:"—" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medical History sidebar -->
+      <div class="inner-card">
+        <h5>Medical History</h5>
+        <div class="detail-section">
+          <div class="detail-item-label">Medical History</div>
+          <div class="detail-item-value">
+            {% if patient.medical_history %}
+              {{ patient.medical_history|linebreaks }}
+            {% else %}
+              <span class="muted">No medical history recorded</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAME 2: Appointments / Records / Prescriptions hub -->
+  <div class="frame medhub-wrapper">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h4 style="margin:0;">Medical Hub</h4>
+        <div class="muted">Appointments, records and prescriptions for this patient</div>
+      </div>
+      {% if user.is_authenticated and user.patient and user.patient.pk == patient.pk %}
+        {# hide + New Appointment for self #}
+      {% else %}
+        <a href="{% url 'appointment_add' %}?patient={{ patient.pk }}" class="btn-custom btn-primary-custom">+ New Appointment</a>
+      {% endif %}
+    </div>
+
+    <!-- Tabs -->
+    <div class="medhub-tabs">
+      <button type="button" class="medhub-tab active" data-target="tabAppointments">Appointments</button>
+      <button type="button" class="medhub-tab" data-target="tabRecords">Records</button>
+      <button type="button" class="medhub-tab" data-target="tabPrescriptions">Prescriptions</button>
+    </div>
+
+    <!-- Search + filter -->
+    <div class="medhub-search-card">
+      <div class="medhub-search-filters">
+        <input
+          id="medhubSearchInput"
+          type="search"
+          class="medhub-search-input"
+          placeholder="🔍 Search by doctor, date, status, record text or medicine..."
+          autocomplete="off">
+        <button type="button" class="medhub-btn-search" id="medhubSearchBtn">Search</button>
+        <div class="medhub-filter-dropdown">
+          <button type="button" class="medhub-btn-filter-toggle" id="medhubFilterToggle" aria-label="Filter options">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+          </button>
+          <div class="medhub-filter-menu" id="medhubFilterMenu">
+            <div class="medhub-filter-label">Appointments</div>
+            <button type="button" class="medhub-filter-option" data-type="appointments" data-filter="upcoming">Upcoming only</button>
+            <button type="button" class="medhub-filter-option" data-type="appointments" data-filter="completed">Completed only</button>
+            <button type="button" class="medhub-filter-option" data-type="appointments" data-filter="all">All statuses</button>
+
+            <div class="medhub-filter-label">Records</div>
+            <button type="button" class="medhub-filter-option" data-type="records" data-filter="recent">Last 5</button>
+            <button type="button" class="medhub-filter-option" data-type="records" data-filter="all">All</button>
+
+            <div class="medhub-filter-label">Prescriptions</div>
+            <button type="button" class="medhub-filter-option" data-type="prescriptions" data-filter="recent">Last 5</button>
+            <button type="button" class="medhub-filter-option" data-type="prescriptions" data-filter="all">All</button>
+          </div>
+        </div>
+      </div>
+      <div id="medhubSearchStatus" class="medhub-search-status">
+        Showing all items
+      </div>
+    </div>
+
+    <!-- 1) Appointments slide -->
+    <div id="tabAppointments" class="medhub-tab-panel active">
+      {% if appointments %}
+        <div class="appointments-table-card">
+          <table class="appointments-table" id="appointmentsList">
+            <thead>
+              <tr>
+                <th class="appt-col-index">#</th>
+                <th>Date &amp; Time</th>
+                <th>Doctor</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in appointments %}
+              <tr
+                data-type="appointment"
+                data-status="{{ a.status|lower }}"
+                data-text="{{ a.doctor.get_full_name|default:a.doctor.username }} {{ a.get_status_display|default:a.status }} {{ a.scheduled_time|localtime|date:'Y-m-d' }}"
+              >
+                <td class="appt-col-index">{{ forloop.counter }}</td>
+                <td>
+                  {% if a.scheduled_time %}
+                    <div class="appt-date">{{ a.scheduled_time|localtime|date:"M d, Y" }}</div>
+                    <div class="appt-time">{{ a.scheduled_time|localtime|time:"g:i A" }}</div>
+                  {% else %}
+                    <span class="muted">No date</span>
+                  {% endif %}
+                </td>
+                <td class="appt-doctor">
+                  {% if a.doctor %}
+                    {{ a.doctor.get_full_name|default:a.doctor.username }}
+                  {% else %}
+                    Unassigned
+                  {% endif %}
+                </td>
+                <td>
+                  {% with s=a.status|lower %}
+                    <span class="appt-status-pill
+                      {% if s == 'scheduled' or s == 'pending' %} appt-status-scheduled
+                      {% elif s == 'completed' %} appt-status-completed
+                      {% elif s == 'cancelled' %} appt-status-cancelled
+                      {% else %} appt-status-scheduled
+                      {% endif %}
+                    ">
+                      {{ a.get_status_display|default:a.status|title }}
+                    </span>
+                  {% endwith %}
+                </td>
+                <td class="appt-actions" style="text-align:right;">
+                  {% if not user.is_authenticated and user.patient and user.patient.pk == patient.pk %}
+                    <a href="{% url 'appointment_edit' a.pk %}" class="btn-link">Edit</a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="notice" style="margin-top:8px;">No appointments found for this patient.</div>
+      {% endif %}
+    </div>
+
+
+    <!-- 2) Records slide -->
+    <div id="tabRecords" class="medhub-tab-panel">
+      {% if records %}
+        <div class="medhub-record-grid" id="recordsList">
+          {% for r in records %}
+          <div class="medhub-record-card"
+               data-type="record"
+               data-text="{{ r.author.get_full_name|default:r.author.username }} {{ r.file_description|default:'' }} {{ r.content|default:''|truncatewords:40 }}"
+               {% if r.attachment %}onclick="window.open('{{ r.attachment.url }}', '_blank', 'noopener')" style="cursor:pointer;"{% endif %}>
+            <div class="medhub-record-title">
+              {% if r.file_description %}
+                {{ r.file_description|truncatechars:50 }}
+              {% else %}
+                Medical Record
+              {% endif %}
+            </div>
+            <div class="medhub-record-meta">
+              {{ r.author.get_full_name|default:r.author.username }} •
+              {{ r.created_at|localtime|date:"M j, Y" }} · {{ r.created_at|localtime|time:"g:i A" }}
+            </div>
+            {% if r.content %}
+            <div class="medhub-record-content">
+              {{ r.content|truncatewords:30 }}
+            </div>
+            {% endif %}
+            <div class="medhub-record-footer">
+              {% if r.visibility %}
+                <span class="badge">{{ r.get_visibility_display|default:r.visibility|title }}</span>
+              {% else %}
+                <span></span>
+              {% endif %}
+              <div class="medhub-record-actions" onclick="event.stopPropagation();">
+                {% if user.is_authenticated and user.role == 'admin' or user == r.author %}
+                  <a href="{% url 'medical_record_edit' r.pk %}" class="medhub-card-link">Edit</a>
+                  <a href="{% url 'medical_record_delete' r.pk %}"
+                     class="medhub-card-link"
+                     style="color:#dc2626;"
+                     onclick="return confirm('Delete this record?');">Delete</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="notice" style="margin-top:8px;">No medical records available yet.</div>
+      {% endif %}
+      {% if records and patient.pk %}
+        <div style="text-align:right;margin-top:14px;">
+          <a href="{% url 'patient_medical_records' patient.pk %}" class="btn-custom btn-outline-custom">
+            View all records
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- 3) Prescriptions slide -->
+    <div id="tabPrescriptions" class="medhub-tab-panel">
+      {% if prescriptions %}
+        <div class="medhub-prescription-grid" id="prescriptionsList">
+          {% for p in prescriptions %}
+          <div class="medhub-prescription-card"
+               data-type="prescription"
+               data-text="{{ p.medication_name }} {{ p.dosage }} {{ p.frequency }} {{ p.duration }} {{ p.instructions|default:'' }}">
+            <div>
+              <div class="medhub-prescription-title">{{ p.medication_name }}</div>
+              <div class="medhub-prescription-line">
+                <strong>Dosage:</strong> {{ p.dosage }} mg
+              </div>
+              <div class="medhub-prescription-line">
+                <strong>Frequency:</strong> {{ p.frequency }}× per day
+              </div>
+              <div class="medhub-prescription-line">
+                <strong>Duration:</strong> {{ p.duration }} days
+              </div>
+              {% if p.instructions %}
+              <div class="medhub-prescription-line" style="margin-top:6px;font-style:italic;">
+                {{ p.instructions|truncatechars:60 }}
+              </div>
+              {% endif %}
+              <div class="medhub-prescription-meta">
+                Dr. {{ p.doctor.get_full_name|default:p.doctor.username }}<br>
+                {{ p.prescribed_date|localtime|date:"M j, Y" }} · {{ p.prescribed_date|localtime|time:"g:i A" }}
+              </div>
+            </div>
+            <div class="medhub-prescription-footer">
+              <span></span>
+              <div class="medhub-record-actions">
+                {% if user.role == 'doctor' and user == p.doctor %}
+                  <a href="{% url 'prescription_edit' p.pk %}" class="medhub-card-link">Edit</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="notice" style="margin-top:8px;">No prescriptions available yet.</div>
+      {% endif %}
+      {% if prescriptions and patient.pk %}
+        <div style="text-align:right;margin-top:14px;">
+          <a href="{% url 'patient_medical_records' patient.pk %}" class="btn-custom btn-outline-custom">
+            View all prescriptions
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>  {# end FRAME 2 #}
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+function smartBack() {
+  const referrer = document.referrer;
+
+  if (referrer.includes('/patients/') || referrer.includes('patient_list')) {
+    window.location.href = "{% url 'patient_list' %}";
+  } else if (referrer.includes('/appointments/') || referrer.includes('appointment')) {
+    window.location.href = "{% url 'appointment_list' %}";
+  } else {
+    window.history.back();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const referrer = document.referrer;
+  const backBtn = document.getElementById('smart-back-btn');
+
+  if (backBtn) {
+    if (referrer.includes('/patients/')) {
+      backBtn.textContent = '← Back';
+    } else if (referrer.includes('/appointments/')) {
+      backBtn.textContent = '← Back';
+    }
+  }
+});
+
+// ========== MEDICAL HUB JS (tabs + search + filter) ==========
+document.addEventListener('DOMContentLoaded', function() {
+  const tabs = document.querySelectorAll('.medhub-tab');
+  const panels = {
+    tabAppointments: document.getElementById('tabAppointments'),
+    tabRecords: document.getElementById('tabRecords'),
+    tabPrescriptions: document.getElementById('tabPrescriptions')
+  };
+  const searchInput = document.getElementById('medhubSearchInput');
+  const searchBtn = document.getElementById('medhubSearchBtn');
+  const statusEl = document.getElementById('medhubSearchStatus');
+
+  function getActivePanelId() {
+    const active = document.querySelector('.medhub-tab.active');
+    return active ? active.dataset.target : 'tabAppointments';
+  }
+
+  function setActiveTab(id) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.target === id));
+    for (const key in panels) {
+      if (panels[key]) {
+        panels[key].classList.toggle('active', key === id);
+      }
+    }
+    if (searchInput) {
+      searchInput.value = '';
+      filterCurrent('');
+      if (statusEl) statusEl.textContent = 'Showing all items';
+    }
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => setActiveTab(tab.dataset.target));
+  });
+
+  function filterCurrent(query) {
+    const q = (query || '').toLowerCase();
+    const activeId = getActivePanelId();
+
+    if (activeId === 'tabAppointments') {
+      const list = document.getElementById('appointmentsList');
+      if (!list) return;
+      list.querySelectorAll('[data-type="appointment"]').forEach(card => {
+        const text = (card.dataset.text || '').toLowerCase();
+        card.style.display = text.includes(q) ? '' : 'none';
+      });
+    } else if (activeId === 'tabRecords') {
+      const list = document.getElementById('recordsList');
+      if (!list) return;
+      list.querySelectorAll('[data-type="record"]').forEach(card => {
+        const text = (card.dataset.text || '').toLowerCase();
+        card.style.display = text.includes(q) ? '' : 'none';
+      });
+    } else if (activeId === 'tabPrescriptions') {
+      const list = document.getElementById('prescriptionsList');
+      if (!list) return;
+      list.querySelectorAll('[data-type="prescription"]').forEach(card => {
+        const text = (card.dataset.text || '').toLowerCase();
+        card.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      filterCurrent(this.value);
+      if (statusEl) {
+        statusEl.textContent = this.value
+          ? `Filtered by "${this.value}"`
+          : 'Showing all items';
+      }
+    });
+  }
+  if (searchBtn) {
+    searchBtn.addEventListener('click', function() {
+      if (!searchInput) return;
+      filterCurrent(searchInput.value);
+      if (statusEl) {
+        statusEl.textContent = searchInput.value
+          ? `Filtered by "${searchInput.value}"`
+          : 'Showing all items';
+      }
+    });
+  }
+
+  const filterToggle = document.getElementById('medhubFilterToggle');
+  const filterMenu = document.getElementById('medhubFilterMenu');
+
+  if (filterToggle && filterMenu) {
+    filterToggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      filterMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!filterMenu.contains(e.target) && !filterToggle.contains(e.target)) {
+        filterMenu.classList.remove('show');
+      }
+    });
+
+    filterMenu.querySelectorAll('.medhub-filter-option').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const type = this.dataset.type;
+        const filter = this.dataset.filter;
+
+        const menu = this.closest('.medhub-filter-menu') || filterMenu;
+        menu.querySelectorAll(`.medhub-filter-option[data-type="${type}"]`)
+            .forEach(o => o.classList.remove('active'));
+        this.classList.add('active');
+
+        if (type === 'appointments') {
+          const list = document.getElementById('appointmentsList');
+          if (!list) return;
+          list.querySelectorAll('[data-type="appointment"]').forEach(card => {
+            const status = (card.dataset.status || '').toLowerCase();
+            if (filter === 'all') {
+              card.style.display = '';
+            } else if (filter === 'upcoming') {
+              card.style.display = (status === 'scheduled' || status === 'pending') ? '' : 'none';
+            } else if (filter === 'completed') {
+              card.style.display = status === 'completed' ? '' : 'none';
+            }
+          });
+          if (statusEl) statusEl.textContent = `Appointments filter: ${this.textContent.trim()}`;
+          setActiveTab('tabAppointments');
+        } else if (type === 'records') {
+          const list = document.getElementById('recordsList');
+          if (!list) return;
+          const cards = Array.from(list.querySelectorAll('[data-type="record"]'));
+          cards.forEach((card, idx) => {
+            if (filter === 'recent') {
+              card.style.display = idx < 5 ? '' : 'none';
+            } else {
+              card.style.display = '';
+            }
+          });
+          if (statusEl) statusEl.textContent = `Records filter: ${this.textContent.trim()}`;
+          setActiveTab('tabRecords');
+        } else if (type === 'prescriptions') {
+          const list = document.getElementById('prescriptionsList');
+          if (!list) return;
+          const cards = Array.from(list.querySelectorAll('[data-type="prescription"]'));
+          cards.forEach((card, idx) => {
+            if (filter === 'recent') {
+              card.style.display = idx < 5 ? '' : 'none';
+            } else {
+              card.style.display = '';
+            }
+          });
+          if (statusEl) statusEl.textContent = `Prescriptions filter: ${this.textContent.trim()}`;
+          setActiveTab('tabPrescriptions');
+        }
+
+        filterMenu.classList.remove('show');
+      });
+    });
+  }
+
+  setActiveTab('tabAppointments');
+});
+</script>
+{% endblock %}

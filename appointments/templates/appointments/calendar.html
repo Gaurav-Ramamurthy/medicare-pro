@@ -1,0 +1,518 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Calendar — MediCare Pro{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vendor/fullcalendar/main.min.css' %}" rel="stylesheet">
+<style>
+  /* ========================================
+     CALENDAR PAGE STYLES
+     ======================================== */
+
+  .calendar-page-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 18px;
+  }
+
+  /* Page Header */
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 12px;
+  }
+
+  .calendar-header h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .btn-new-appointment {
+    padding: 10px 20px;
+    background: #00bcd4;
+    color: #fff;
+    border: 2px solid #00bcd4;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .btn-new-appointment:hover {
+    background: #00acc1;
+    border-color: #00acc1;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,188,212,0.3);
+  }
+
+  /* Calendar Container */
+  #calendar-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  #calendar {
+    min-height: 500px;
+  }
+
+  /* FullCalendar Custom Styling */
+  .fc {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .fc-toolbar-title {
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+  }
+
+  .fc-button {
+    background: #00bcd4 !important;
+    border-color: #00bcd4 !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+    padding: 6px 14px !important;
+    border-radius: 6px !important;
+     gap: 8px; 
+  }
+
+  .fc-button:hover {
+    background: #00acc1 !important;
+    border-color: #00acc1 !important;
+  }
+
+  .fc-button-active {
+    background: #0097a7 !important;
+    border-color: #0097a7 !important;
+  }
+
+  .fc-daygrid-day:hover {
+    background: #f8fafc;
+    cursor: pointer;
+  }
+
+  .fc-event {
+    border-radius: 4px !important;
+    padding: 2px 4px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* Upcoming Appointments Section */
+  .upcoming-section {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 24px;
+  }
+
+  .upcoming-section h5 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 16px 0;
+  }
+
+  .upcoming-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .upcoming-list li {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    transition: background 0.2s;
+  }
+
+  .upcoming-list li:hover {
+    background: #f8fafc;
+  }
+
+  .upcoming-list li:last-child {
+    border-bottom: none;
+  }
+
+  .appointment-info {
+    flex: 1;
+  }
+
+  .appointment-info strong {
+    display: block;
+    font-size: 0.95rem;
+    color: #0f172a;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .dt-muted {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .appointment-status {
+    text-align: right;
+  }
+
+  .badge-status {
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .status-scheduled,
+  .status-pending {
+    background: #fbbf24;
+    color: #78350f;
+  }
+
+  .status-confirmed {
+    background: #3b82f6;
+  }
+
+  .status-completed {
+    background: #10b981;
+  }
+
+  .status-cancelled {
+    background: #ef4444;
+  }
+
+  .status-expired {
+    background: #94a3b8;
+  }
+
+  .no-appointments {
+    text-align: center;
+    padding: 32px 20px;
+    color: #94a3b8;
+    font-size: 0.95rem;
+  }
+
+  /* ========================================
+     MOBILE RESPONSIVE
+     ======================================== */
+
+  @media (max-width: 768px) {
+    .calendar-page-wrapper {
+      padding: 16px 12px;
+    }
+
+    .calendar-header {
+      flex-direction: column;
+      align-items: flex-start;
+      padding-top: 8px;
+    }
+
+    .calendar-header h3 {
+      font-size: 1.5rem;
+    }
+
+    .btn-new-appointment {
+      width: 100%;
+      text-align: center;
+    }
+
+    #calendar-wrapper {
+      padding: 16px;
+    }
+
+    #calendar {
+      min-height: 400px;
+    }
+
+    .fc-toolbar {
+      flex-direction: column !important;
+      gap: 10px !important;
+    }
+
+    .fc-toolbar-chunk {
+      display: flex !important;
+      justify-content: center !important;
+      width: 100% !important;
+    }
+
+    .fc-toolbar-title {
+      font-size: 1.1rem !important;
+    }
+
+    .fc-button {
+      padding: 5px 10px !important;
+      font-size: 0.8rem !important;
+    }
+
+    .upcoming-section {
+      padding: 16px;
+    }
+
+    .upcoming-section h5 {
+      font-size: 1.1rem;
+    }
+
+    .upcoming-list li {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .appointment-status {
+      text-align: left;
+      width: 100%;
+    }
+
+    .badge-status {
+      display: inline-block;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .calendar-header {
+      padding-top: 6px;
+    }
+
+    .calendar-header h3 {
+      font-size: 1.3rem;
+    }
+
+    .fc-toolbar-title {
+      font-size: 1rem !important;
+    }
+
+    .appointment-info strong {
+      font-size: 0.9rem;
+    }
+
+    .dt-muted {
+      font-size: 0.8rem;
+    }
+  }
+.fc-toolbar .fc-toolbar-chunk {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+}
+
+.fc-toolbar .fc-button-group {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+}
+ .fc-daygrid-day-number {
+    color: #0f172a;    /* your desired color (example: dark blue) */
+    font-weight: bold; /* optional: make it bolder */
+}
+
+
+.fc-col-header-cell * {
+  color: #000 !important;
+}
+th.fc-col-header-cell {
+  color: #000 !important;
+}
+th.fc-day {
+  color: #000 !important;
+}
+.fc-day-header {
+  color: #000 !important;
+}
+.fc-event-title, .fc-event-time {
+    color: #fff !important;     /* Makes event title and time white */
+}
+
+.fc-event {
+    color: #fff !important;         /* Sometimes needed for older FullCalendar versions */ /* Optional: set a darker event background */
+    border-radius: 6px;
+    padding: 2px 6px !important;
+}
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-page-wrapper">
+  <div class="calendar-header">
+    <h3>{% if request.user.role == 'patient' %}My Appointments{% else %}Calendar{% endif %}</h3>
+    {% if request.user.role != 'patient' %}
+      <a href="{% url 'appointment_add' %}" class="btn-new-appointment">+ New Appointment</a>
+    {% endif %}
+  </div>
+
+  <div id="calendar-wrapper">
+    <div id="calendar"></div>
+  </div>
+
+  <div class="upcoming-section">
+    <h5>Upcoming Appointments</h5>
+    {% if upcoming %}
+      <ul class="upcoming-list">
+        {% for ev in upcoming %}
+          <li>
+            <div class="appointment-info">
+              <strong>{{ ev.title }}</strong>
+              {% if ev.dt %}
+                <div class="dt-muted">{{ ev.dt|date:"D, d M Y H:i T" }}</div>
+              {% endif %}
+            </div>
+            <div class="appointment-status">
+              {% if ev.status %}
+                <span class="badge-status status-{{ ev.status|lower }}">{{ ev.status|capfirst }}</span>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="no-appointments">
+        📅 No upcoming appointments scheduled.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/fullcalendar/main.min.js' %}"></script>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) {
+      console.error("Calendar element not found.");
+      return;
+    }
+    if (typeof FullCalendar === 'undefined') {
+      console.error("FullCalendar not loaded from local file.");
+      return;
+    }
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      headerToolbar: { 
+        left: 'prev,next today', 
+        center: 'title', 
+        right: 'dayGridMonth,timeGridWeek,timeGridDay' 
+      },
+      events: "{% url 'calendar_events' %}",
+      dateClick: function(info) {
+        {% if request.user.role != 'patient' %}
+          window.location.href = "{% url 'appointment_add' %}?date=" + info.dateStr;
+        {% endif %}
+      },
+      eventClick: function(info) {
+        if (info.event.url) {
+          window.location.href = info.event.url;
+        }
+      },locale: 'en',
+
+      eventTimeFormat: {
+        hour: 'numeric',
+        minute: '2-digit',
+        meridiem: 'short'
+      },
+        eventContent: function(arg) {
+        // Force uppercase AM/PM
+        let timeStr = arg.timeText ? arg.timeText.replace('am', 'AM').replace('pm', 'PM') : '';
+            var bgColor = arg.backgroundColor || arg.event.backgroundColor || '';
+            var borderColor = arg.borderColor || arg.event.borderColor || '';
+            var textColor = arg.textColor || arg.event.textColor || '';
+            
+    return {
+      html: `<div style="background:${bgColor};color:${textColor};border-color:${borderColor};padding:2px 5px;border-radius:3px;">
+        ${timeStr ? `<span>${timeStr}</span> ` : ''}${arg.event.title}
+      </div>`
+    };      },
+      height: 'auto',
+      contentHeight: 'auto',
+      aspectRatio: 1.8
+    });
+    
+    calendar.render();
+    console.log("FullCalendar rendered successfully.");
+  } catch (err) {
+    console.error("Calendar initialization error:", err);
+  }
+});
+</script>
+
+<script>
+const Toast = {
+  container: null,
+  init() {
+    this.container = document.getElementById('toastContainer');
+    if (!this.container) {
+      this.container = document.createElement('div');
+      this.container.id = 'toastContainer';
+      this.container.className = 'toast-container';
+      document.body.appendChild(this.container);
+    }
+  },
+  show(message, type = 'info', duration = 3000) {
+    if (!this.container) this.init();
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    this.container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  },
+  success(message, duration) { this.show(message, 'success', duration); },
+  error(message, duration) { this.show(message, 'error', duration); },
+  warning(message, duration) { this.show(message, 'warning', duration); },
+  info(message, duration) { this.show(message, 'info', duration); }
+};
+
+// Show Django messages as toasts safely with JSON parsing
+document.addEventListener('DOMContentLoaded', function() {
+  const messagesEl = document.getElementById('django-messages');
+  if (messagesEl) {
+    try {
+      const messages = JSON.parse(messagesEl.textContent);
+      messages.forEach(msg => {
+        if (Toast[msg.level]) {
+          Toast[msg.level](msg.text);
+        } else {
+          Toast.info(msg.text);
+        }
+      });
+    } catch (e) {
+      console.error('Error parsing Django messages for toast:', e);
+    }
+  }
+});
+</script>
+{% endblock %}

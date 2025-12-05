@@ -1,0 +1,494 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}My Account — MediCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 18px;
+  }
+
+  .profile-header {
+    margin-bottom: 24px;
+    padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .profile-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .btn-action {
+    padding: 10px 20px;
+    background: #fff;
+    color: #00bcd4;
+    border: 2px solid #00bcd4;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-action:hover {
+    background: #00bcd4;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .profile-form {
+    background: #fff;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .profile-pic-section, .form-section {
+    margin-bottom: 24px;
+  }
+
+  .profile-pic-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #00bcd4;
+    background: #e0f2fe;
+    box-shadow: 0 4px 12px rgba(0,188,212,0.2);
+  }
+
+  .pic-upload-info {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .pic-upload-info h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+  }
+
+  .btn-upload {
+    padding: 9px 18px;
+    background: #00bcd4;
+    color: #fff;
+    border: 2px solid #00bcd4;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f5f9;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .form-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #334155;
+    margin-bottom: 8px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 11px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: #00bcd4;
+    box-shadow: 0 0 0 3px rgba(0,188,212,0.1);
+  }
+
+  .form-control-plaintext {
+    padding: 11px 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+    border-bottom: 2px solid #f1f5f9;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-submit {
+    padding: 12px 32px;
+    background: #00bcd4;
+    color: #fff;
+    border: 2px solid #00bcd4;
+    border-radius: 8px;
+    font-weight: 700;
+    flex: 1;
+  }
+
+  .btn-cancel {
+    padding: 12px 32px;
+    background: #fff;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-weight: 700;
+    flex: 1;
+  }
+
+  .hidden { display: none !important; }
+
+  /* FIXED PASSWORD MODAL */
+  .password-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .password-modal.show {
+    display: flex !important;
+  }
+
+  .password-modal-content {
+    background: #fff;
+    border-radius: 12px;
+    max-width: 520px;
+    width: 100%;
+    padding: 32px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #64748b;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+  }
+
+  .modal-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+  }
+
+  .modal-subtitle {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0 0 24px 0;
+  }
+
+  .mb-3 { margin-bottom: 20px; }
+
+  /* EXACT ERROR MESSAGES */
+  .password-error {
+    background: #fee2e2;
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    color: #dc2626;
+    font-size: 0.9rem;
+  }
+
+  .field-error {
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin-top: 6px;
+  }
+
+  .text-muted {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .form-row { grid-template-columns: 1fr; }
+    .form-actions { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-wrapper">
+  <div class="profile-header">
+    <h2>My Account</h2>
+    <div style="display: flex; gap: 12px;">
+      <button type="button" class="btn-action" id="editProfileBtn">✏️ Edit Profile</button>
+      <button type="button" class="btn-action" id="openPasswordModal">🔒 Change Password</button>
+    </div>
+  </div>
+
+  <div class="profile-form">
+    <!-- VIEW MODE -->
+    <div id="viewMode">
+      <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid #f1f5f9;">
+        <img class="profile-pic-preview" 
+             src="{% if user.profile_pic %}{{ user.profile_pic.url }}{% else %}https://via.placeholder.com/120?text={{ user.first_name.0|default:'P' }}{{ user.last_name.0|default:'' }}{% endif %}" 
+             alt="Profile Picture">
+        <div>
+          <h4>{{ user.get_full_name|default:user.username }}</h4>
+          <p>{{ user.email }}</p>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Personal Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <div class="form-control-plaintext">{{ user.username|default:"Not set" }}</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <div class="form-control-plaintext">{{ user.first_name|default:"Not set" }}</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <div class="form-control-plaintext">{{ user.last_name|default:"Not set" }}</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <div class="form-control-plaintext">{{ user.email|default:"Not set" }}</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <div class="form-control-plaintext">{{ user.phone|default:"Not set" }}</div>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label">Address</label>
+            <div class="form-control-plaintext">{{ user.address|default:"Not set" }}</div>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label">Bio</label>
+            <div class="form-control-plaintext">{{ user.bio|default:"Not set" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT MODE -->
+    <form method="post" enctype="multipart/form-data" id="editMode" class="hidden">
+      {% csrf_token %}
+      <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px;">
+        <img id="profilePicPreview" class="profile-pic-preview" 
+             src="{% if user.profile_pic %}{{ user.profile_pic.url }}{% else %}https://via.placeholder.com/120?text={{ user.first_name.0|default:'P' }}{{ user.last_name.0|default:'' }}{% endif %}" 
+             alt="Profile Picture">
+        <div style="flex: 1;">
+          <h4>Profile Picture</h4>
+          <p>Upload a profile picture (JPG, PNG, max 5MB)</p>
+          <label class="btn-upload" for="id_profile_pic">Choose Picture</label>
+          <input type="file" id="id_profile_pic" name="profile_pic" accept="image/*" style="display: none;">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Personal Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="id_username">username *</label>
+            <input type="text" id="id_username" name="username" class="form-control" value="{{ user.username }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_first_name">First Name *</label>
+            <input type="text" id="id_first_name" name="first_name" class="form-control" value="{{ user.first_name }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_last_name">Last Name *</label>
+            <input type="text" id="id_last_name" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_email">Email Address *</label>
+            <input type="email" id="id_email" name="email" class="form-control" value="{{ user.email }}" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="id_phone">Phone Number</label>
+            <input type="tel" id="id_phone" name="phone" class="form-control" value="{{ user.phone|default:'' }}">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="id_address">Address</label>
+            <textarea id="id_address" name="address" class="form-control">{{ user.address|default:'' }}</textarea>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="id_bio">Bio</label>
+            <textarea id="id_bio" name="bio" class="form-control">{{ user.bio|default:'' }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" name="update_profile" class="btn-submit">Save Changes</button>
+        <button type="button" id="cancelEditBtn" class="btn-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- FIXED PASSWORD MODAL -->
+<div class="password-modal" id="passwordModal">
+  <div class="password-modal-content">
+    <button type="button" class="modal-close" id="closePasswordModal">×</button>
+    <h2 class="modal-title">Change your password</h2>
+    <p class="modal-subtitle">Enter your current password and choose a new one.</p>
+
+    <!-- EXACT ERROR DISPLAY -->
+    {% if password_form.errors %}
+      <div class="password-error">
+        {% for field, errors in password_form.errors.items %}
+          {% for error in errors %}
+            • {{ error }}<br>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" id="passwordForm">
+      {% csrf_token %}
+      <input type="hidden" name="change_password" value="true">
+      
+      <div class="mb-3">
+        <label class="form-label">Current password <span style="color: #dc2626;">*</span></label>
+        <input type="password" name="old_password" class="form-control" 
+               value="{{ password_form.old_password.value|default:'' }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">New password <span style="color: #dc2626;">*</span></label>
+        <input type="password" name="new_password1" class="form-control" 
+               value="{{ password_form.new_password1.value|default:'' }}" required>
+        <div class="text-muted">Use a strong password (8+ characters recommended)</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Confirm new password <span style="color: #dc2626;">*</span></label>
+        <input type="password" name="new_password2" class="form-control" 
+               value="{{ password_form.new_password2.value|default:'' }}" required>
+      </div>
+
+      <button type="submit" class="btn-submit">🔑 Update password</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Edit Profile toggle
+  document.getElementById('editProfileBtn').onclick = () => {
+    document.getElementById('viewMode').classList.add('hidden');
+    document.getElementById('editMode').classList.remove('hidden');
+    document.getElementById('editProfileBtn').style.display = 'none';
+  };
+
+  document.getElementById('cancelEditBtn').onclick = () => {
+    document.getElementById('editMode').classList.add('hidden');
+    document.getElementById('viewMode').classList.remove('hidden');
+    document.getElementById('editProfileBtn').style.display = 'inline-block';
+    document.getElementById('editMode').reset();
+  };
+
+  // FIXED PASSWORD MODAL - STAYS OPEN ON ERRORS
+  const passwordModal = document.getElementById('passwordModal');
+  const openPasswordModalBtn = document.getElementById('openPasswordModal');
+  const closePasswordModalBtn = document.getElementById('closePasswordModal');
+  const passwordForm = document.getElementById('passwordForm');
+
+  // Open modal
+  openPasswordModalBtn.onclick = () => {
+    passwordModal.classList.add('show');
+  };
+
+  // Close only on X or outside click (NOT on submit)
+  closePasswordModalBtn.onclick = () => {
+    passwordModal.classList.remove('show');
+    passwordForm.reset();
+  };
+
+  passwordModal.onclick = (e) => {
+    if (e.target === passwordModal) {
+      passwordModal.classList.remove('show');
+      passwordForm.reset();
+    }
+  };
+
+  // AUTO-OPEN if password errors exist
+  {% if password_form.errors %}
+    passwordModal.classList.add('show');
+  {% endif %}
+
+  // Profile picture preview
+  document.getElementById('id_profile_pic').onchange = function() {
+    const file = this.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('File size must be less than 5MB', 'error');
+        this.value = '';
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select an image file', 'error');
+        this.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('profilePicPreview').src = e.target.result;
+        showToast('Profile picture preview updated!', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+});
+</script>
+{% endblock %}

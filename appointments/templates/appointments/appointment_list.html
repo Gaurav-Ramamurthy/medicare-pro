@@ -1,0 +1,885 @@
+{% extends "core/base.html" %}
+{% load tz %}
+{% block title %}Appointments — MediCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Appointments Page Styles */
+.appointments-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 18px;
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.page-title-section h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+.page-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn-custom {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 2px solid;
+  transition: all 0.2s;
+  display: inline-block;
+  white-space: nowrap;
+}
+.btn-primary-custom {
+  background: #00bcd4;
+  color: #fff;
+  border-color: #00bcd4;
+}
+.btn-primary-custom:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+.btn-outline-custom {
+  background: #fff;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+.btn-outline-custom:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+.summary-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.summary-info {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+.search-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.search-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative;
+}
+.search-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 3px rgba(0,188,212,0.1);
+}
+.btn-search {
+  padding: 10px 24px;
+  background: #00bcd4;
+  color: #fff;
+  border: 2px solid #00bcd4;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-search:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+.filter-dropdown {
+  position: relative;
+}
+.btn-filter-toggle {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+}
+.btn-filter-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+.filter-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  padding: 6px;
+  min-width: 170px;
+  display: none !important;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  z-index: 9999;
+}
+.btn-filter-toggle svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+  display: block;
+}
+
+.filter-menu.active {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.filter-option {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 500;
+}
+.filter-option:hover {
+  background: #f8fafc;
+  color: #00bcd4;
+}
+.filter-option.active {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+.search-status {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+.card-appointments {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.card-header-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+.card-header-custom h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+.count-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.table-appointments {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.table-appointments thead {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+.table-appointments th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 700;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.table-appointments td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+.table-appointments tbody tr:hover {
+  background: #f8fafc;
+}
+.status-badge {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+}
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+.status-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.action-link {
+  color: #00bcd4;
+  text-decoration: none;
+  font-weight: 600;
+  margin-right: 12px;
+  font-size: 0.9rem;
+}
+.action-link:hover {
+  text-decoration: underline;
+}
+.action-delete {
+  color: #dc2626;
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.action-delete:hover {
+  text-decoration: underline;
+}
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: #94a3b8;
+}
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+/* Modal styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1050;
+  display: none;
+}
+.modal-backdrop.show {
+  display: block;
+}
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 90%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  transform: translate(-50%, -50%);
+  z-index: 1060;
+  display: none;
+  flex-direction: column;
+}
+.modal.show {
+  display: flex;
+}
+.modal-header {
+  padding: 20px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+}
+.modal-body {
+  padding: 20px;
+  color: #334155;
+  font-size: 0.95rem;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e2e8f0;
+}
+.btn-modal {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+.btn-modal-primary {
+  background: #dc2626;
+  color: white;
+}
+.btn-modal-primary:hover {
+  background: #b91c1c;
+}
+.btn-modal-secondary {
+  background: #f8fafc;
+  color: #64748b;
+  border: 2px solid #cbd5e1;
+}
+.btn-modal-secondary:hover {
+  background: #e2e8f0;
+}
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .appointments-wrapper {
+    padding: 16px 12px;
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .header-actions {
+    width: 100%;
+  }
+  .btn-custom {
+    flex: 1;
+    text-align: center;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+  .summary-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .search-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+  .search-input,
+  .btn-search {
+    width: 100%;
+  }
+  .filter-dropdown {
+    width: 100%;
+  }
+  .btn-filter-toggle {
+    width: 100%;
+  }
+  .filter-menu {
+    right: auto;
+    left: 0;
+    width: 100%;
+  }
+  .card-appointments {
+    padding: 14px;
+  }
+  .table-appointments {
+    font-size: 0.85rem;
+  }
+  .table-appointments th,
+  .table-appointments td {
+    padding: 10px 8px;
+  }
+  .table-appointments thead {
+    display: none;
+  }
+  .table-appointments tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fff;
+  }
+  .table-appointments td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .table-appointments td:before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #64748b;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+  .table-appointments td:last-child {
+    border-bottom: none;
+  }
+}
+.table-appointments th:nth-child(5),
+.table-appointments th:nth-child(6) {
+  padding-left: 27px !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="appointments-wrapper">
+  <div class="page-header">
+    <div class="page-title-section">
+      <h1>Appointments</h1>
+      <div class="page-subtitle">Manage patient appointments</div>
+    </div>
+
+    <div class="header-actions">
+      {% if user.is_superuser or user.role == 'admin' %}
+        <a href="{% url 'admin_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+      {% elif user.role == 'doctor' %}
+        <a href="{% url 'doctor_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+      {% elif user.role == 'reception' %}
+        <a href="{% url 'reception_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+      {% elif user.role == 'patient' %}
+        <a href="{% url 'patient_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+      {% endif %}
+
+      <a href="{% url 'appointment_history' %}" class="btn-custom btn-outline-custom">📋 History</a>
+
+      {% if user.role == 'admin' or user.role == 'receptionist' %}
+        <a href="{% url 'appointment_add' %}" class="btn-custom btn-primary-custom">+ New</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="summary-bar">
+    <div class="summary-info">
+      {% if date_str %}
+        Showing for <strong>{{ date_str }}</strong>
+      {% else %}
+        Showing upcoming appointments
+      {% endif %}
+    </div>
+    <div class="summary-info">
+      <strong>Upcoming:</strong> {{ upcoming_count|default:0 }}
+    </div>
+  </div>
+
+  <!-- SEARCH + FILTER BAR -->
+  <form id="appointment-search-form" method="get" class="search-card" autocomplete="off">
+    <div class="search-filters">
+      <input
+        type="search"
+        id="appointment-search-input"
+        name="q"
+        value="{{ request.GET.q|default:'' }}"
+        class="search-input"
+        placeholder="🔍 Search by status, date, time..."
+        autocomplete="off"
+      />
+      <button type="submit" class="btn-search">Search</button>
+      <input type="hidden" name="order" id="orderInput" value="{{ request.GET.order|default:'asc' }}" />
+      <div class="filter-dropdown">
+        <button type="button" class="btn-filter-toggle" id="filterToggle" aria-label="Filter options">
+          <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+        </button>
+        <div class="filter-menu" id="filterMenu">
+          <button type="button" class="filter-option {% if request.GET.order != 'asc' %}active{% endif %}" data-value="desc">Newest First</button>
+          <button type="button" class="filter-option {% if request.GET.order == 'asc' %}active{% endif %}" data-value="asc">Oldest First</button>
+        </div>
+      </div>
+    </div>
+    <div id="search-status" class="search-status" aria-live="polite">
+      {% if request.GET.q %}
+        Showing results for "<strong>{{ request.GET.q }}</strong>"
+      {% elif request.GET.order == 'asc' %}
+        Showing oldest first
+      {% elif request.GET.order == 'desc' %}
+        Showing newest first
+      {% else %}
+        Showing all upcoming appointments
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="card-appointments">
+    <div class="card-header-custom">
+      <h2>Upcoming Appointments</h2>
+      <span class="count-badge">{{ upcoming_count|default:0 }} Total</span>
+    </div>
+
+    {% if upcoming %}
+      <div class="table-responsive">
+        <table class="table-appointments">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+              {% if user.role == 'admin' or user.role == 'doctor' %}
+                <th>Actions</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody id="appointment-tbody">
+            {% for a in upcoming %}
+              <tr>
+                <td data-label="Patient">
+                  {% if a.patient.user.first_name or a.patient.user.last_name %}
+                    {{ a.patient.user.first_name }} {{ a.patient.user.last_name }}
+                  {% else %}
+                    {{ a.patient.user.email|default:a.patient }}
+                  {% endif %}
+                </td>
+                <td data-label="Doctor">
+                  {% if a.doctor %}
+                    Dr. {{ a.doctor.get_full_name|default:a.doctor.username }}
+                  {% else %}
+                    <span style="color:#94a3b8;">Unassigned</span>
+                  {% endif %}
+                </td>
+                <td data-label="Date" style="color:#059669; font-weight:600;">
+                  {% if a.scheduled_time %}
+                    {{ a.scheduled_time|localtime|date:"Y-m-d" }}
+                  {% else %}
+                    <span style="color:#94a3b8;">—</span>
+                  {% endif %}
+                </td>
+                <td data-label="Time" style="color:#059669;">
+                  {% if a.scheduled_time %}
+                    {{ a.scheduled_time|localtime|time:"g:i A" }}
+                  {% else %}
+                    <span style="color:#94a3b8;">—</span>
+                  {% endif %}
+                </td>
+                <td data-label="Status">
+                  {% if a.status == 'pending' %}
+                    <span class="status-badge status-pending">Pending</span>
+                  {% elif a.status == 'completed' %}
+                    <span class="status-badge status-completed">Completed</span>
+                  {% elif a.status == 'cancelled' %}
+                    <span class="status-badge status-cancelled">Cancelled</span>
+                  {% else %}
+                    <span class="status-badge">{{ a.get_status_display|default:a.status|title }}</span>
+                  {% endif %}
+                </td>
+                {% if user.role == 'admin' or user.role == 'doctor' or user == a.patient.user %}
+                  <td data-label="Actions">
+                    <a href="{% url 'appointment_edit' a.pk %}" class="action-link">Edit</a>
+                    <button type="button" class="action-delete delete-appointment-btn"
+                      data-appointment-id="{{ a.pk }}"
+                      data-patient-name="{% if a.patient.user.first_name or a.patient.user.last_name %}{{ a.patient.user.first_name }} {{ a.patient.user.last_name }}{% else %}{{ a.patient.user.email|default:a.patient }}{% endif %}">
+                      Cancel
+                    </button>
+                  </td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📅</div>
+        <div style="font-size:1.1rem; font-weight:600; color:#64748b; margin-bottom:8px;">
+          No upcoming appointments
+        </div>
+        {% if user.role == 'admin' or user.role == 'doctor' %}
+          <a href="{% url 'appointment_add' %}" class="btn-custom btn-primary-custom" style="margin-top:12px;">
+            Create First Appointment
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div id="cancelModalBackdrop" class="modal-backdrop"></div>
+<div id="cancelModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="cancelModalLabel" aria-describedby="cancelModalDesc">
+  <div class="modal-header" id="cancelModalLabel">Confirm Cancel Appointment</div>
+  <div class="modal-body" id="cancelModalDesc">
+    Are you sure you want to cancel the appointment for <strong id="cancelPatientName"></strong>?
+  </div>
+  <div class="modal-footer">
+    <button id="cancelConfirmBtn" class="btn-modal btn-modal-primary">Cancel Appointment</button>
+    <button id="cancelCloseBtn" class="btn-modal btn-modal-secondary">Close</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toast on successful edit
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('edit_success') === 'true') {
+    const patientName = params.get('patient_name') || '';
+    if (window.showToast) {
+      window.showToast(
+        patientName 
+          ? `Appointment for ${decodeURIComponent(patientName)} updated!` 
+          : 'Appointment updated successfully!', 
+        'success'
+      );
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+
+  // Filter dropdown toggle + submit
+  const filterToggle = document.getElementById('filterToggle');
+  const filterMenu = document.getElementById('filterMenu');
+  const searchForm = document.getElementById('appointment-search-form');
+  const orderInput = document.getElementById('orderInput');
+
+  if (filterToggle && filterMenu && searchForm && orderInput) {
+    filterToggle.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      filterMenu.classList.toggle('active');
+    });
+
+    document.addEventListener('click', e => {
+      if (!filterToggle.contains(e.target) && !filterMenu.contains(e.target)) {
+        filterMenu.classList.remove('active');
+      }
+    });
+
+    filterMenu.addEventListener('click', e => e.stopPropagation());
+
+    filterMenu.querySelectorAll('.filter-option').forEach(option => {
+      option.addEventListener('click', e => {
+        e.preventDefault();
+        orderInput.value = option.getAttribute('data-value');
+        filterMenu.classList.remove('active');
+        if (window.showToast) showToast(`Sorting by ${option.textContent}`, 'info');
+        searchForm.submit();  // Full page reload on sort
+      });
+    });
+  }
+
+  // Live search with debounce and AJAX update
+  const searchInput = document.getElementById('appointment-search-input');
+  const searchStatus = document.getElementById('search-status');
+  const appointmentTbody = document.getElementById('appointment-tbody');
+  const countBadge = document.querySelector('.count-badge');
+  let searchTimeout = null;
+
+  function debounce(fn, delay) {
+    return function(...args) {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+
+  async function performLiveSearch(query) {
+    if (!searchStatus || !appointmentTbody) return;
+
+    const url = new URL(window.location.href);
+    const currentOrder = url.searchParams.get('order') || 'asc';
+    url.searchParams.set('order', currentOrder);
+    url.searchParams.delete('page'); // reset pagination
+
+    if (query.trim()) {
+      url.searchParams.set('q', query.trim());
+    } else {
+      url.searchParams.delete('q');
+    }
+
+    try {
+      searchStatus.textContent = '🔍 Searching...';
+      const response = await fetch(url.toString(), {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'text/html'
+        }
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      // Update table body
+      const newTbody = doc.getElementById('appointment-tbody');
+      if (newTbody) {
+        appointmentTbody.innerHTML = newTbody.innerHTML;
+        attachDeleteListeners(); // reattach cancel button listeners
+      }
+
+      // Update search status text
+      const newStatus = doc.getElementById('search-status');
+      if (newStatus) {
+        searchStatus.innerHTML = newStatus.innerHTML || newStatus.textContent;
+      } else {
+        searchStatus.textContent = query ? `Showing results for "${query}"` : 'Showing all upcoming appointments';
+      }
+
+      // Update count badge, if present
+      const newCount = doc.querySelector('.count-badge');
+      if (newCount && countBadge) {
+        countBadge.textContent = newCount.textContent;
+      }
+
+      // Success toast with actual count
+      if (window.showToast) {
+        const countMatch = newCount?.textContent.match(/(\d+)/);
+        const count = countMatch ? countMatch[1] : 0;
+        if (query.trim()) {
+          showToast(`Found ${count} appointment${count !== '1' ? 's' : ''}`, 'success');
+        }
+      }
+    } catch (error) {
+      console.error('Live search failed:', error);
+      searchStatus.textContent = '❌ Search failed — showing current results';
+      if (window.showToast) showToast('Search temporarily unavailable', 'error');
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', debounce(function(e) {
+      performLiveSearch(e.target.value);
+    }, 300));
+  }
+
+  // Cancel modal logic as it is, kept for your cancel buttons
+  const cancelModal = document.getElementById('cancelModal');
+  const cancelBackdrop = document.getElementById('cancelModalBackdrop');
+  const cancelPatientName = document.getElementById('cancelPatientName');
+  const cancelConfirmBtn = document.getElementById('cancelConfirmBtn');
+  const cancelCloseBtn = document.getElementById('cancelCloseBtn');
+  let currentCancelId = null;
+
+  function openCancelModal(patientName, appointmentId) {
+    currentCancelId = appointmentId;
+    if (cancelPatientName) cancelPatientName.textContent = patientName;
+    if (cancelModal) cancelModal.classList.add('show');
+    if (cancelBackdrop) cancelBackdrop.classList.add('show');
+    if (window.showToast) showToast('Confirm cancellation?', 'warning');
+  }
+
+  function closeCancelModal() {
+    if (cancelModal) cancelModal.classList.remove('show');
+    if (cancelBackdrop) cancelBackdrop.classList.remove('show');
+    currentCancelId = null;
+  }
+
+  function attachDeleteListeners() {
+    document.querySelectorAll('.delete-appointment-btn').forEach(btn => {
+      btn.removeEventListener('click', handleDeleteClick);
+      btn.addEventListener('click', handleDeleteClick);
+    });
+  }
+
+  function handleDeleteClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const appointmentId = this.getAttribute('data-appointment-id');
+    const patientName = this.getAttribute('data-patient-name') || 'patient';
+    openCancelModal(patientName, appointmentId);
+  }
+
+  attachDeleteListeners();
+
+  if (cancelCloseBtn) cancelCloseBtn.addEventListener('click', closeCancelModal);
+  if (cancelBackdrop) cancelBackdrop.addEventListener('click', closeCancelModal);
+
+  if (cancelConfirmBtn) {
+    cancelConfirmBtn.addEventListener('click', async function() {
+      if (!currentCancelId) return;
+      if (window.showToast) showToast('Cancelling appointment...', 'info');
+      try {
+        const response = await fetch(`/appointments/${currentCancelId}/delete/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        if (response.ok) {
+          if (window.showToast) showToast('✅ Appointment cancelled successfully!', 'success');
+          closeCancelModal();
+          setTimeout(() => {
+            if (searchInput) performLiveSearch(searchInput.value);
+          }, 500);
+        } else {
+          if (window.showToast) showToast('❌ Failed to cancel appointment', 'error');
+        }
+      } catch (error) {
+        console.error('Cancel failed:', error);
+        if (window.showToast) showToast('❌ Network error - please try again', 'error');
+      }
+    });
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && cancelModal?.classList.contains('show')) {
+      closeCancelModal();
+    }
+  });
+});
+</script>
+{% endblock %}

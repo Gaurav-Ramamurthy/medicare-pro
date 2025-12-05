@@ -1,0 +1,371 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  
+  <link rel="icon" type="image/png" href="{% static 'logo.png' %}">  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>      Login — MediCare Pro</title>
+
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+
+  <style>
+    /* small page-specific tweaks so it looks good even if style.css is minimal */
+    body {
+      background: linear-gradient(180deg,#f4f7fb,#eef6ff);
+      min-height: 100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      margin:0;
+      padding:20px;
+    }
+    .auth-wrap {
+      max-width:420px;
+      width:100%;
+      background: #fff;
+      border-radius:12px;
+      box-shadow: 0 8px 28px rgba(15,23,42,0.08);
+      padding:28px;
+    }
+    .brand {
+      text-align:center;
+      margin-bottom:6px;
+      font-weight:800;
+      color:#0f172a;
+      font-size:1.2rem;
+      letter-spacing:0.02em;
+    }
+    .brand-sub {
+      display:block;
+      font-size:0.85rem;
+      color:#64748b;
+      margin-bottom:18px;
+      font-weight:600;
+      text-align:center;
+    }
+    h2 { margin:0 0 8px 0; text-align:center; font-size:1.25rem; color:#0f172a; }
+    .muted { color:#64748b; text-align:center; margin-bottom:14px; font-size:0.95rem; }
+
+    label { display:block; margin-bottom:6px; font-weight:600; color:#334155; font-size:0.95rem; }
+    .input, input[type="text"], input[type="password"], select {
+      width:100%;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid #e6eef0;
+      font-size:1rem;
+      box-sizing:border-box;
+    }
+
+    .row { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:12px; }
+    .remember { font-weight:600; color:#475569; font-size:0.95rem; display:flex; align-items:center; gap:8px; }
+
+    .links { text-align:right; }
+    .link { color:#0f172a; font-weight:600; text-decoration:none; font-size:0.95rem; }
+    .link:hover { text-decoration:underline; }
+
+    /* Divider with text */
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 24px 0 20px;
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .divider-text {
+      padding: 0 16px;
+      color: #64748b;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Register text link styling */
+    .register-section {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.95rem;
+      color: #64748b;
+    }
+    .register-link {
+      color: #0ea5a4;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border-bottom: 2px solid transparent;
+    }
+    .register-link:hover {
+      color: #06b6d4;
+      text-decoration: underline;
+      border-bottom-color: #06b6d4;
+    }
+
+    .btn-primary {
+      margin-top:18px;
+      display:block;
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      background: linear-gradient(90deg,#0ea5a4,#06b6d4);
+      border:none;
+      color:#fff;
+      font-weight:800;
+      font-size:1rem;
+      cursor:pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(14,165,164,0.3);
+    }
+
+    .messages { list-style:none; padding:0; margin:0 0 12px 0; }
+    .message { padding:10px;border-radius:8px;margin-bottom:8px;background:#f1f5f9;color:#0f172a; }
+
+    .errorlist { color:#b91c1c; margin-top:6px; }
+
+    /* password-eye */
+    .pw-wrap { position:relative; }
+    #togglePassword {
+      position:absolute; 
+      right:12px; 
+      top:50%; 
+      transform:translateY(-50%); 
+      cursor:pointer; 
+      opacity:0.7;
+      transition: opacity 0.2s;
+    }
+    #togglePassword:hover {
+      opacity: 1;
+    }
+
+    @media (max-width:480px) {
+      body { padding:12px; }
+      .auth-wrap { padding:18px; }
+    }
+
+    /* Toast CSS */
+    .toast-container {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      min-width: 250px;
+      max-width: 400px;
+      background-color: #0e8483;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 17px 26px;
+      font-size: 1rem;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: auto;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .toast.success { background-color: #16a34a; }
+    .toast.error { background-color: #dc2626; }
+    .toast.warning { background-color: #f59e0b; }
+    .toast.info { background-color: #0ea5a4; }
+  </style>
+</head>
+<body>
+  <div class="auth-wrap" role="main" aria-labelledby="login-heading">
+    <div class="brand">MediCare Pro <span class="brand-sub">Healthcare Management</span></div>
+
+    <h2 id="login-heading">Sign in to MediCare Pro</h2>
+    <div class="muted">Enter your username and password to continue</div>
+
+    {% if messages %}
+      <ul class="messages" aria-live="polite">
+        {% for message in messages %}
+          <li class="message {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+      <div class="errorlist" role="alert">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post" novalidate id="login-form">
+      {% csrf_token %}
+
+      <div style="margin-top:10px;">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <div class="errorlist">{{ form.username.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        <div class="pw-wrap">
+          <input type="password" name="password" id="id_password" class="input" placeholder="Enter your password" aria-label="Password" />
+          <!-- Fixed eye SVG -->
+          <svg id="togglePassword" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+        {% if form.password.errors %}
+          <div class="errorlist">{{ form.password.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="row" style="margin-top:14px;">
+        <div class="remember">
+          <label style="display:flex;align-items:center;gap:8px;">
+            {{ form.remember_me }} <span>Remember me</span>
+          </label>
+        </div>
+
+        <div class="links">
+          <a class="link" href="{% url 'forgot-password' %}">Forgot password?</a>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary">Login</button>
+    </form>
+
+    <!-- Divider with text -->
+    <div class="divider">
+      <span class="divider-text">New Patient?</span>
+    </div>
+
+    <!-- Updated Register Link as Text -->
+    <div class="register-section">
+      Don't have an account? 
+      <a href="{% url 'patient_register' %}" class="register-link">Register here</a>
+      <br>
+      <small style="color: #94a3b8;">(Admin approval required)</small>
+    </div>
+
+    <p style="text-align:center;color:#94a3b8;font-size:0.9rem;margin-top:16px;">
+      Need help? Contact your clinic receptionist.
+    </p>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Django messages as JSON -->
+  {% if messages %}
+  <script id="django-messages" type="application/json">
+  [
+    {% for message in messages %}
+    {
+      "level": "{% if 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% elif 'success' in message.tags %}success{% else %}info{% endif %}",
+      "text": "{{ message|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+  </script>
+  {% endif %}
+
+  <script>
+    // Toast Notification System
+    const Toast = {
+      container: null,
+      init() {
+        this.container = document.getElementById('toastContainer');
+        if (!this.container) {
+          this.container = document.createElement('div');
+          this.container.id = 'toastContainer';
+          this.container.className = 'toast-container';
+          document.body.appendChild(this.container);
+        }
+      },
+      show(message, type = 'info', duration = 3000) {
+        if (!this.container) this.init();
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        this.container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      },
+      success(message, duration) { this.show(message, 'success', duration); },
+      error(message, duration) { this.show(message, 'error', duration); },
+      warning(message, duration) { this.show(message, 'warning', duration); },
+      info(message, duration) { this.show(message, 'info', duration); }
+    };
+
+    // Toggle password visibility
+    document.addEventListener("DOMContentLoaded", function() {
+      const toggle = document.getElementById("togglePassword");
+      const pwd = document.getElementById("id_password");
+      
+      if (toggle && pwd) {
+        let showing = false;
+        toggle.addEventListener("click", function() {
+          showing = !showing;
+          pwd.type = showing ? "text" : "password";
+          
+          // Switch between eye and eye-slash icons
+          if (showing) {
+            toggle.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+          } else {
+            toggle.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+          }
+        });
+      }
+
+      // Listen for form submission to validate and show toasts
+      const loginForm = document.querySelector('form');
+      if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+          const username = document.querySelector('[name="username"]').value.trim();
+          const password = document.querySelector('[name="password"]').value.trim();
+          if (!username) {
+            e.preventDefault();
+            Toast.warning('Please enter your username');
+            return;
+          }
+          if (!password) {
+            e.preventDefault();
+            Toast.warning('Please enter your password');
+            return;
+          }
+          Toast.info('Logging in...');
+        });
+      }
+
+      // Show Django messages as toasts
+      const messagesEl = document.getElementById('django-messages');
+      if (messagesEl) {
+        try {
+          const messages = JSON.parse(messagesEl.textContent);
+          messages.forEach(msg => {
+            Toast[msg.level](msg.text);
+          });
+        } catch (e) {
+          console.error('Error parsing Django messages for toast:', e);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1037 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} — MediCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   PATIENTS PAGE STYLES
+   ======================================== */
+
+.patients-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 18px;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title-section h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.page-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-custom {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 2px solid;
+  transition: all 0.2s;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.btn-primary-custom {
+  background: #00bcd4;
+  color: #fff;
+  border-color: #00bcd4;
+}
+
+.btn-primary-custom:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+
+.btn-outline-custom {
+  background: #fff;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+
+.btn-outline-custom:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* Summary Bar - moved on top */
+.summary-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 2px 6px;
+  background: #f8fafc;
+  border-radius: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+/* Search Card */
+.search-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.search-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-input-patients {
+  flex: 1;
+  min-width: 250px;
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #334155;
+  transition: all 0.2s;
+}
+
+.search-input-patients:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 3px rgba(0,188,212,0.1);
+}
+
+.btn-search {
+  padding: 10px 24px;
+  background: #00bcd4;
+  color: #fff;
+  border: 2px solid #00bcd4;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-search:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+
+/* Filter Button and Dropdown */
+.filter-dropdown {
+  position: relative;
+}
+
+.btn-filter-toggle {
+  width: 45px;
+  height: 45px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+}
+
+.btn-filter-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.btn-filter-toggle:active {
+  background: #e2e8f0;
+}
+
+.btn-filter-toggle svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+  display: block;
+}
+
+.filter-menu {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 6px;
+  min-width: 170px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+.filter-menu.show {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+  display: block !important;
+}
+
+.filter-menu .filter-option {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.filter-menu .filter-option:hover {
+  background: #f8fafc;
+  color: #00bcd4;
+}
+
+.filter-menu .filter-option.active {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.search-status {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Patients Card */
+.patients-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.card-header-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.card-header-custom h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.count-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Table - NO HORIZONTAL SCROLL */
+.table-responsive {
+  overflow-x: auto; /* Only vertical scroll if needed */
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-patients {
+  width: 100%; /* Fixed: 100% width only */
+  min-width: 800px; /* Minimum width for content */
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  table-layout: fixed; /* Fixed layout for better control */
+}
+
+.table-patients thead {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table-patients th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 700;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.table-patients td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-patients tbody tr:hover {
+  background: #f8fafc;
+}
+
+.patient-avatar {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.avatar-initials {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.blood-badge {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.action-link {
+  color: #00bcd4;
+  text-decoration: none;
+  font-weight: 600;
+  margin-right: 8px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.action-link:hover {
+  text-decoration: underline;
+}
+
+.action-delete {
+  color: #dc2626;
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.action-delete:hover {
+  text-decoration: underline;
+}
+
+/* Delete Modal */
+.delete-confirm {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.delete-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+.delete-modal h3 {
+  color: #dc2626;
+  margin: 0 0 16px 0;
+  font-size: 1.3rem;
+}
+
+.delete-modal p {
+  color: #64748b;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.delete-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-delete-yes {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-delete-no {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: #94a3b8;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+/* Pagination */
+.pagination-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 2px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pagination-info {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.pagination-nav {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.page-btn {
+  padding: 8px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.page-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.page-btn-disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.table-patients tbody tr {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.table-patients tbody tr:hover {
+  background: #f0f9ff !important;
+}
+
+
+/* ========================================
+   MOBILE RESPONSIVE - NO HORIZONTAL SCROLL
+   ======================================== */
+
+@media (max-width: 768px) {
+  .patients-wrapper {
+    padding: 16px 12px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-custom {
+    flex: 1;
+    text-align: center;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .search-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .search-input-patients,
+  .btn-search {
+    width: 100%;
+  }
+
+  .filter-dropdown {
+    width: 100%;
+  }
+
+  .btn-filter-toggle {
+    width: 100%;
+  }
+
+  .filter-menu {
+    right: auto;
+    left: 0;
+    width: 100%;
+  }
+
+  .summary-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .patients-card {
+    padding: 14px;
+  }
+
+  /* Mobile: Stack table cards - NO horizontal scroll */
+  .table-responsive {
+    overflow-x: visible;
+  }
+
+  .table-patients {
+    min-width: auto;
+    border: none;
+  }
+
+  .table-patients thead {
+    display: none;
+  }
+
+  .table-patients tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .table-patients td {
+    display: block;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left !important;
+    overflow: visible;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .table-patients td:before {
+    content: attr(data-label) ": ";
+    font-weight: 700;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    display: inline-block;
+    min-width: 90px;
+  }
+
+  .table-patients td:last-child {
+    border-bottom: none;
+  }
+
+  .pagination-wrapper {
+    flex-direction: column;
+  }
+
+  .delete-modal {
+    padding: 24px 20px;
+  }
+
+  .delete-buttons {
+    flex-direction: column;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="patients-wrapper">
+
+  <!-- Hidden form to expose CSRF token for JS -->
+  <form id="csrf-helper-form" style="display:none;">
+    {% csrf_token %}
+  </form>
+  <div class="page-header">
+    <div class="page-title-section">
+      <h1>{{ page_title }}</h1>
+      <div class="page-subtitle">
+        {% if is_doctor %}
+          Patients with appointments
+        {% else %}
+          Manage patient records
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="header-actions">
+    {% if request.user.is_superuser or request.user.role == 'admin' %}
+      <a href="{% url 'admin_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+    {% elif request.user.role == 'doctor' %}
+      <a href="{% url 'doctor_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+    {% elif request.user.role == 'reception' %}
+      <a href="{% url 'reception_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+    {% elif request.user.role == 'patient' %}
+      <a href="{% url 'patient_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+    {% else %}
+      <a href="{% url 'dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+    {% endif %}
+
+      {% if can_create %}
+        <a href="{% url 'patient_add' %}" class="btn-custom btn-primary-custom">+ New Patient</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Summary bar above search -->
+  <div class="summary-bar">
+    <div class="summary-info">All registered patients</div>
+    <div class="summary-info"><strong>Total:</strong> {{ patients.paginator.count }}</div>
+  </div>
+
+  <!-- Search Form -->
+  <form id="patient-search-form" method="get" action="" class="search-card" autocomplete="off">
+    <div class="search-filters">
+      <input
+        id="patient-search-input"
+        name="q"
+        type="search"
+        value="{{ q|default:'' }}"
+        class="search-input-patients"
+        placeholder="🔍 Search by name, email, phone..."
+        aria-label="Search patients"
+        autocomplete="off"
+      >
+      <button type="submit" class="btn-search">Search</button>
+
+      <!-- Hidden input for blood group -->
+      <input type="hidden" name="blood_group" id="bloodGroupInput" value="{{ request.GET.blood_group|default:'' }}">
+
+      <div class="filter-dropdown">
+        <button type="button" class="btn-filter-toggle" id="filterToggle" aria-label="Filter by blood group">
+          <svg xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+        </button>
+        <div class="filter-menu" id="filterMenu">
+          <button type="button" class="filter-option {% if not request.GET.blood_group %}active{% endif %}" data-value="">
+            All Blood Groups
+          </button>
+          <button type="button" class="filter-option {% if request.GET.blood_group == 'A+' %}active{% endif %}" data-value="A+">A+</button>
+          <button type="button" class="filter-option {% if request.GET.blood_group == 'A-' %}active{% endif %}" data-value="A-">A-</button>
+          <button type="button" class="filter-option {% if request.GET.blood_group == 'B+' %}active{% endif %}" data-value="B+">B+</button>
+          <button type="button" class="filter-option {% if request.GET.blood_group == 'B-' %}active{% endif %}" data-value="B-">B-</button>
+          <button type="button" class="filter-option {% if request.GET.blood_group == 'AB+' %}active{% endif %}" data-value="AB+">AB+</button>
+          <button type="button" class="filter-option {% if request.GET.blood_group == 'AB-' %}active{% endif %}" data-value="AB-">AB-</button>
+          <button type="button" class="filter-option {% if request.GET.blood_group == 'O+' %}active{% endif %}" data-value="O+">O+</button>
+          <button type="button" class="filter-option {% if request.GET.blood_group == 'O-' %}active{% endif %}" data-value="O-">O-</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="search-status" class="search-status" aria-live="polite"></div>
+  </form>
+
+  <!-- Patients Table -->
+  <div class="patients-card">
+    <div class="card-header-custom">
+      <h2>Patient List</h2>
+      <span class="count-badge">{{ patients.paginator.count }} Total</span>
+    </div>
+
+    {% if patients %}
+    <div class="table-responsive">
+      <table class="table-patients">
+        <thead>
+          <tr>
+            <th style="width: 60px;">Photo</th>
+            <th style="width: 18%;">Full Name</th>
+            <th style="width: 20%;">Email</th>
+            <th style="width: 14%;">Phone</th>
+            <th style="width: 8%;">Age</th>
+            <th style="width: 10%;">Blood</th>
+            <th style="width: 15%;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="patients-tbody">
+          {% for patient in patients %}
+          <tr data-patient-id="{{ patient.pk }}" data-view-url="{% url 'patient_detail' patient.pk %}" style="cursor: pointer;">
+            <td data-label="Photo">
+              {% if patient.photo %}
+              <img src="{{ patient.photo.url }}" alt="{{ patient.full_name }}" class="patient-avatar" loading="lazy" />
+              {% else %}
+              <div class="avatar-initials">
+                {{ patient.first_name|first|upper }}{{ patient.last_name|first|upper }}
+              </div>
+              {% endif %}
+            </td>
+            <td data-label="Full Name" style="font-weight:600; color:#0f172a;">
+              {{ patient.full_name|default:"N/A" }}
+            </td>
+            <td data-label="Email" style="color:#64748b;">
+              {{ patient.email|default:"-" }}
+            </td>
+            <td data-label="Phone" style="color:#059669; font-weight:600;">
+              {{ patient.phone|default:"-" }}
+            </td>
+            <td data-label="Age">
+              {% if patient.age %}{{ patient.age }} yrs{% else %}-{% endif %}
+            </td>
+            <td data-label="Blood">
+              {% if patient.blood_group %}
+              <span class="blood-badge">{{ patient.blood_group }}</span>
+              {% else %}-{% endif %}
+            </td>
+            <td data-label="Actions">
+              {% if not is_doctor %}
+                <a href="{% url 'patient_edit' patient.pk %}" class="action-link">Edit</a>
+                {% if user.role == 'admin' %}
+                <button class="action-delete delete-patient-btn" data-patient-id="{{ patient.pk }}" data-patient-name="{{ patient.full_name|default:'this patient' }}">Delete</button>
+                {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if patients.paginator.num_pages > 1 %}
+    <div class="pagination-wrapper" id="pagination-wrapper">
+      <div class="pagination-info">
+        Showing <strong>{{ patients.start_index }}–{{ patients.end_index }}</strong> of <strong>{{ patients.paginator.count }}</strong>
+      </div>
+
+      <ul class="pagination-nav">
+        {% if patients.has_previous %}
+        <li>
+          <a href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if request.GET.blood_group %}blood_group={{ request.GET.blood_group }}&{% endif %}page={{ patients.previous_page_number }}" class="page-btn">Previous</a>
+        </li>
+        {% else %}
+        <li><span class="page-btn page-btn-disabled">Previous</span></li>
+        {% endif %}
+        <li>
+          <span class="page-btn page-btn-disabled">{{ patients.number }}/{{ patients.paginator.num_pages }}</span>
+        </li>
+        {% if patients.has_next %}
+        <li>
+          <a href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if request.GET.blood_group %}blood_group={{ request.GET.blood_group }}&{% endif %}page={{ patients.next_page_number }}" class="page-btn">Next</a>
+        </li>
+        {% else %}
+        <li><span class="page-btn page-btn-disabled">Next</span></li>
+        {% endif %}
+      </ul>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">👥</div>
+      <div style="font-size:1.1rem; font-weight:600; color:#64748b; margin-bottom:8px;">
+        {% if q %}
+        No patients found matching "{{ q }}"
+        {% elif request.GET.blood_group %}
+        No patients with blood group {{ request.GET.blood_group }}
+        {% elif is_doctor %}
+        No patients yet
+        {% else %}
+        No patients registered yet
+        {% endif %}
+      </div>
+      {% if can_create and not q %}
+      <a href="{% url 'patient_add' %}" class="btn-custom btn-primary-custom" style="margin-top:12px;">
+        Create First Patient
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="delete-confirm" id="deleteConfirm">
+    <div class="delete-modal">
+      <h3>Delete Patient?</h3>
+      <p>This action cannot be undone. Are you sure you want to delete <strong id="patientName"></strong>?</p>
+      <div class="delete-buttons">
+        <button class="btn-delete-yes" id="confirmDelete">Yes, Delete</button>
+        <button class="btn-delete-no" id="cancelDelete">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  const filterToggle = document.getElementById('filterToggle');
+  const filterMenu = document.getElementById('filterMenu');
+  const form = document.getElementById('patient-search-form');
+  const bloodGroupInput = document.getElementById('bloodGroupInput');
+  const input = document.getElementById('patient-search-input');
+  const status = document.getElementById('search-status');
+  const deleteConfirm = document.getElementById('deleteConfirm');
+  const patientNameEl = document.getElementById('patientName');
+  const confirmDeleteBtn = document.getElementById('confirmDelete');
+  const cancelDeleteBtn = document.getElementById('cancelDelete');
+  let timer = null;
+  let currentPatientId = null;
+
+  // ---- FILTER DROPDOWN ----
+  if (filterToggle && filterMenu) {
+    filterToggle.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      filterMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('click', e => {
+      if (!filterMenu.contains(e.target) && !filterToggle.contains(e.target)) {
+        filterMenu.classList.remove('show');
+      }
+    });
+
+    filterMenu.querySelectorAll('.filter-option').forEach(option => {
+      option.addEventListener('click', e => {
+        e.preventDefault();
+        const value = option.getAttribute('data-value');
+        if (bloodGroupInput && form) {
+          bloodGroupInput.value = value;
+          filterMenu.classList.remove('show');
+          form.submit();
+        }
+      });
+    });
+  }
+
+  // ---- SEARCH (AJAX) ----
+  function debounce(fn, ms) {
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), ms);
+    }
+  }
+
+  async function fetchAndReplace(q) {
+    const url = new URL(window.location.href);
+    if (q) url.searchParams.set('q', q);
+    else url.searchParams.delete('q');
+    url.searchParams.delete('page');
+
+    try {
+      status.textContent = 'Searching...';
+      const res = await fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      const text = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+
+      const newTbody = doc.getElementById('patients-tbody');
+      const newPagination = doc.getElementById('pagination-wrapper');
+
+      if (!newTbody || newTbody.children.length === 0) {
+        const oldTbody = document.getElementById('patients-tbody');
+        if (oldTbody) oldTbody.innerHTML = '';
+        status.textContent = q ? `No results for "${q}"` : 'Showing all patients';
+        return;
+      }
+
+      const oldTbody = document.getElementById('patients-tbody');
+      if (oldTbody && newTbody) oldTbody.innerHTML = newTbody.innerHTML;
+
+      const oldPagination = document.getElementById('pagination-wrapper');
+      if (oldPagination && newPagination) oldPagination.innerHTML = newPagination.innerHTML;
+
+      status.textContent = q ? `Showing results for "${q}"` : 'Showing all patients';
+
+      // Re‑attach handlers after DOM replace
+      attachRowClickHandlers();
+      attachDeleteHandlers();
+    } catch (err) {
+      console.error('Search failed', err);
+      status.textContent = 'Search failed — showing current results';
+    }
+  }
+
+  const onInput = debounce(e => {
+    const q = (e.target.value || '').trim();
+    fetchAndReplace(q);
+  }, 300);
+
+  if (input) input.addEventListener('input', onInput);
+
+  // ---- CSRF HELPER ----
+  function getCsrfToken() {
+    const el = document.querySelector('#csrf-helper-form input[name=csrfmiddlewaretoken]');
+    return el ? el.value : '';
+  }
+
+  // ---- CLICKABLE ROWS (VIEW) ----
+  function attachRowClickHandlers() {
+    document.querySelectorAll('#patients-tbody tr').forEach(function(row) {
+      const viewUrl = row.getAttribute('data-view-url');
+      if (!viewUrl) return;
+
+      row.onclick = function(e) {
+        // Ignore clicks on links/buttons (Edit/Delete)
+        if (e.target.closest('a') || e.target.closest('button')) {
+          return;
+        }
+        window.location.href = viewUrl;
+      };
+    });
+  }
+
+  // ---- DELETE BUTTON / MODAL ----
+  function attachDeleteHandlers() {
+    document.querySelectorAll('.delete-patient-btn').forEach(btn => {
+      btn.onclick = function(e) {
+        e.stopPropagation(); // prevent row click
+        currentPatientId = this.getAttribute('data-patient-id');
+        const patientName = this.getAttribute('data-patient-name');
+        if (patientNameEl) patientNameEl.textContent = patientName || 'this patient';
+        deleteConfirm.style.display = 'flex';   // show ONLY custom popup
+      };
+    });
+  }
+
+  if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener('click', () => {
+      deleteConfirm.style.display = 'none';
+      currentPatientId = null;
+    });
+  }
+
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener('click', async () => {
+      if (!currentPatientId) return;
+
+      try {
+        const csrftoken = getCsrfToken();
+        const res = await fetch(`/patients/${currentPatientId}/delete/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+
+        if (res.ok) {
+          const row = document.querySelector(`[data-patient-id="${currentPatientId}"]`);
+          if (row) row.remove();
+
+          deleteConfirm.style.display = 'none';
+          currentPatientId = null;
+
+          status.textContent = 'Patient deleted successfully';
+        } else {
+          console.error('Delete failed with status', res.status);
+          alert('Delete failed. Please try again.');
+        }
+      } catch (err) {
+        console.error('Delete error:', err);
+        alert('Delete failed. Please try again.');
+      }
+    });
+  }
+
+  // Close modal when clicking outside
+  if (deleteConfirm) {
+    deleteConfirm.addEventListener('click', (e) => {
+      if (e.target === deleteConfirm) {
+        deleteConfirm.style.display = 'none';
+        currentPatientId = null;
+      }
+    });
+  }
+
+  // ---- INITIAL ATTACH ----
+  attachRowClickHandlers();
+  attachDeleteHandlers();
+})();
+</script>
+{% endblock %}

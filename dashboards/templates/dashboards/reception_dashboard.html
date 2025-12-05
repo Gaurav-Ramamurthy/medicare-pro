@@ -1,0 +1,644 @@
+{% extends "core/base.html" %}
+{% load tz %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}Reception Dashboard — MediCare Pro{% endblock %}
+
+{% block content %}
+<div class="modern-admin-dashboard">
+  <!-- Top Header with Cyan Background -->
+  <div class="dashboard-top-header">
+    <div class="header-left">
+      <h1>Reception Dashboard</h1>
+      <p class="subtitle">
+        Welcome,
+        <strong>{{ user.get_full_name|default:user.username }}</strong>
+        • Front desk overview • {{ today|date:"m/d/Y" }}
+      </p>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'appointment_add' %}" class="btn-cyan">📅 Schedule Appointment</a>
+      <a href="{% url 'patient_add' %}" class="btn-cyan">➕ Add Patient</a>
+      <a href="{% url 'appointment_list' %}" class="btn-cyan-outline">Query Section</a>
+    </div>
+  </div>
+
+  <!-- Stats Cards Row -->
+  <div class="stats-row">
+    <div class="stat-box stat-patients">
+      <div class="stat-label">PATIENTS</div>
+      <div class="stat-number">{{ patient_count|default:0 }}</div>
+      <div class="stat-change {% if patient_growth >= 0 %}positive{% else %}negative{% endif %}">
+        {{ patient_growth|floatformat:1 }}% {% if patient_growth >= 0 %}✓{% else %}✗{% endif %}
+      </div>
+    </div>
+
+    <div class="stat-box stat-appointments">
+      <div class="stat-label">APPOINTMENTS</div>
+      <div class="stat-number">{{ total_appointments|default:0 }}</div>
+      <div class="stat-change {% if appointments_growth >= 0 %}positive{% else %}negative{% endif %}">
+        {{ appointments_growth|floatformat:1 }}% {% if appointments_growth >= 0 %}✓{% else %}✗{% endif %}
+      </div>
+    </div>
+
+    <div class="stat-box stat-today">
+      <div class="stat-label">TODAY'S APPOINTMENTS</div>
+      <div class="stat-number">{{ todays_appointments|default:0 }}</div>
+      <div class="stat-change {% if today_growth >= 0 %}positive{% else %}negative{% endif %}">
+        {{ today_growth|floatformat:1 }}% {% if today_growth >= 0 %}✓{% else %}✗{% endif %}
+      </div>
+    </div>
+
+    <div class="stat-box stat-pending">
+      <div class="stat-label">SCHEDULED</div>
+      <div class="stat-number">{{ pending_appointments|default:0 }}</div>
+      <div class="stat-change {% if pending_growth >= 0 %}positive{% else %}negative{% endif %}">
+        {{ pending_growth|floatformat:1 }}% {% if pending_growth >= 0 %}✓{% else %}✗{% endif %}
+      </div>
+    </div>
+
+    <div class="stat-box stat-completed">
+      <div class="stat-label">COMPLETED</div>
+      <div class="stat-number">{{ completed_appointments|default:0 }}</div>
+      <div class="stat-change {% if completed_growth >= 0 %}positive{% else %}negative{% endif %}">
+        {{ completed_growth|floatformat:1 }}% {% if completed_growth >= 0 %}✓{% else %}✗{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Database Analytics Section -->
+  <div class="analytics-section">
+    <div class="section-header">
+      <div class="section-title">
+        <span class="icon">📊</span>
+        <h2>Real Database Analytics</h2>
+      </div>
+      <p class="section-subtitle">
+        Live data from your actual patients and appointments • Based on createdAt timestamps
+      </p>
+    </div>
+
+    <!-- Charts Grid (Patient Growth + Weekly Appointments) -->
+    <div class="charts-grid-two">
+      <!-- Patient Growth Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <span class="chart-icon">📈</span>
+            <h3>Real Patient Growth</h3>
+          </div>
+          <span class="badge-db">Database Data</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="patientGrowthChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Weekly Appointments Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <span class="chart-icon">📅</span>
+            <h3>This Week's Appointments</h3>
+          </div>
+          <span class="badge-live">Live Data</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="weeklyAppointmentsChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Appointment Status Chart (Yearly Stacked Bar Chart) -->
+  <div class="appointment-status-section">
+    <div class="chart-card-full">
+      <div class="chart-header-main">
+        <h2>Appointment Status Overview</h2>
+        <p class="chart-subtitle">
+          Full year appointment trends for {{ today|date:"Y" }} • Real database data (by creation date)
+        </p>
+      </div>
+      <div class="chart-container-large">
+        <canvas id="yearlyAppointmentChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.modern-admin-dashboard {
+  background: #f5f7fa;
+  min-height: 100vh;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Top Cyan Header */
+.dashboard-top-header {
+  background: linear-gradient(135deg, #00bcd4 0%, #00acc1 100%);
+  padding: 28px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.15);
+  margin: 0 20px 24px;
+  border-radius: 12px;
+}
+
+.header-left h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: white;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-cyan {
+  background: white;
+  color: #00bcd4;
+  padding: 11px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid white;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.btn-cyan:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.btn-cyan-outline {
+  background: transparent;
+  color: white;
+  padding: 11px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  display: inline-block;
+}
+
+.btn-cyan-outline:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Stats Row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 18px;
+  padding: 0 20px 24px;
+}
+
+.stat-box {
+  background: white;
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 5px solid #ddd;
+}
+
+.stat-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #999;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.stat-number {
+  font-size: 40px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.stat-change {
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.stat-change.positive { color: #00bcd4; }
+.stat-change.negative { color: #ef4444; }
+
+.stat-patients   { border-left-color: #4caf50; }
+.stat-appointments { border-left-color: #9e9e9e; }
+.stat-today      { border-left-color: #00bcd4; }
+.stat-pending    { border-left-color: #f97316; }
+.stat-completed  { border-left-color: #10b981; }
+.stat-patients .stat-number   { color: #388e3c; }
+.stat-today .stat-number      { color: #00acc1; }
+.stat-pending .stat-number    { color: #ea580c; }
+.stat-completed .stat-number  { color: #16a34a; }
+
+/* Analytics Section */
+.analytics-section { padding: 0 20px 24px; }
+
+.section-header {
+  background: white;
+  padding: 22px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.section-title .icon { font-size: 28px; }
+
+.section-title h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-left: 40px;
+}
+
+/* Charts Grid */
+.charts-grid-two {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.chart-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.chart-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-icon { font-size: 20px; }
+
+.chart-title h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.badge-db {
+  background: #e0f7fa;
+  color: #00acc1;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge-live {
+  background: #e8f5e9;
+  color: #4caf50;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chart-container {
+  height: 280px;
+  position: relative;
+}
+
+/* Appointment Status Chart */
+.appointment-status-section { padding: 0 20px 24px; }
+
+.chart-card-full {
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s;
+}
+.chart-card-full:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.chart-header-main h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.chart-subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 22px;
+}
+
+.chart-container-large {
+  height: 320px;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .charts-grid-two { grid-template-columns: 1fr; }
+}
+@media (max-width: 1024px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .dashboard-top-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+  .header-actions {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .btn-cyan, .btn-cyan-outline { width: auto; }
+  .chart-container-large { height: 280px; }
+}
+@media (max-width: 768px) {
+  .stats-row { grid-template-columns: 1fr; gap: 12px; padding: 0 16px 18px; }
+  .dashboard-top-header {
+    margin: 0 16px 18px;
+    padding: 18px 20px;
+    border-radius: 12px;
+  }
+  .header-left h1 { font-size: 24px; }
+  .subtitle { font-size: 12px; }
+  .header-actions { gap: 8px; flex-direction: column; }
+  .btn-cyan, .btn-cyan-outline {
+    width: 100%;
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  .charts-grid-two { gap: 16px; }
+  .chart-card { padding: 18px; }
+  .chart-container { height: 240px; }
+  .analytics-section, .appointment-status-section { padding: 0 16px 18px; }
+  .chart-card-full { padding: 20px; }
+  .chart-container-large { height: 260px; }
+}
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: 1fr; gap: 10px; padding: 0 12px 16px; }
+  .dashboard-top-header {
+    margin: 0 12px 16px;
+    padding: 16px 16px;
+    border-radius: 8px;
+  }
+  .header-left h1 { font-size: 20px; }
+  .subtitle { font-size: 11px; }
+  .stat-box { padding: 16px; }
+  .stat-label { font-size: 10px; }
+  .stat-number { font-size: 32px; }
+  .chart-container { height: 200px; }
+  .chart-container-large { height: 220px; }
+  .analytics-section, .appointment-status-section { padding: 0 12px 16px; }
+  .chart-card-full { padding: 16px; }
+}
+</style>
+
+<!-- Pass Django data to JavaScript -->
+<script id="chart-data" type="application/json">
+{
+  "patientGrowthData": {{ patient_growth_data|safe }},
+  "weeklyAppointmentsData": {{ weekly_appointments_data|safe }},
+  "monthlyStats": {{ monthly_stats|safe }}
+}
+</script>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+console.log("=== CHART DEBUG ===");
+console.log("Chart.js loaded?", typeof Chart !== 'undefined');
+
+let chartData = {
+  patientGrowthData: [0, 0, 0, 0],
+  weeklyAppointmentsData: [0, 0, 0, 0, 0, 0, 0],
+  monthlyStats: []
+};
+
+try {
+  const dataElement = document.getElementById('chart-data');
+  if (dataElement) {
+    const jsonText = dataElement.textContent.trim();
+    chartData = JSON.parse(jsonText);
+    console.log("✅ Chart data parsed successfully!", chartData);
+  } else {
+    console.error("❌ chart-data element not found!");
+  }
+} catch (e) {
+  console.error("❌ Error parsing chart data:", e);
+}
+
+const patientGrowthData = Array.isArray(chartData.patientGrowthData) && chartData.patientGrowthData.length > 0
+  ? chartData.patientGrowthData
+  : [0, 0, 0, 0];
+
+const weeklyAppointmentsData = Array.isArray(chartData.weeklyAppointmentsData) && chartData.weeklyAppointmentsData.length > 0
+  ? chartData.weeklyAppointmentsData
+  : [0, 0, 0, 0, 0, 0, 0];
+
+let monthlyStats = Array.isArray(chartData.monthlyStats) && chartData.monthlyStats.length > 0
+  ? chartData.monthlyStats
+  : [];
+
+if (monthlyStats.length === 0) {
+  monthlyStats = Array(12).fill(0).map((_, i) => ({
+    month: i + 1,
+    scheduled: 0,
+    completed: 0,
+    cancelled: 0
+  }));
+}
+
+// Patient Growth Chart
+const patientCtx = document.getElementById('patientGrowthChart');
+if (patientCtx) {
+  new Chart(patientCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+      datasets: [{
+        label: 'Patients',
+        data: patientGrowthData,
+        borderColor: '#00bcd4',
+        backgroundColor: 'rgba(0, 188, 212, 0.08)',
+        borderWidth: 3,
+        pointRadius: 5,
+        pointBackgroundColor: '#00bcd4',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 5, font: { size: 11 }, color: '#999' },
+          grid: { color: 'rgba(0, 0, 0, 0.03)', drawBorder: false }
+        },
+        x: {
+          ticks: { font: { size: 11 }, color: '#999' },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// Weekly Appointments Chart
+const appointmentCtx = document.getElementById('weeklyAppointmentsChart');
+if (appointmentCtx) {
+  new Chart(appointmentCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [{
+        label: 'Appointments',
+        data: weeklyAppointmentsData,
+        backgroundColor: 'rgba(0, 188, 212, 0.7)',
+        borderColor: '#00bcd4',
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, font: { size: 11 }, color: '#999' },
+          grid: { color: 'rgba(0, 0, 0, 0.03)', drawBorder: false }
+        },
+        x: {
+          ticks: { font: { size: 11 }, color: '#999' },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// Yearly Appointment Chart (WITH LEGEND)
+const yearlyCtx = document.getElementById('yearlyAppointmentChart');
+if (yearlyCtx) {
+  const scheduledData = monthlyStats.map(stat => stat.scheduled || 0);
+  const completedData = monthlyStats.map(stat => stat.completed || 0);
+  const cancelledData = monthlyStats.map(stat => stat.cancelled || 0);
+
+  new Chart(yearlyCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
+        { label: 'Scheduled', data: scheduledData, backgroundColor: '#5856D6', barThickness: 35 },
+        { label: 'Completed', data: completedData, backgroundColor: '#34C759', barThickness: 35 },
+        { label: 'Cancelled', data: cancelledData, backgroundColor: '#FF3B30', barThickness: 35 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'end',
+          labels: {
+            boxWidth: 12,
+            boxHeight: 12,
+            padding: 15,
+            font: { size: 12, weight: '600' },
+            color: '#666'
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { font: { size: 11 }, color: '#999' },
+          grid: { display: false }
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          ticks: { stepSize: 5, font: { size: 11 }, color: '#999' },
+          grid: { color: 'rgba(0, 0, 0, 0.03)', drawBorder: false }
+        }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

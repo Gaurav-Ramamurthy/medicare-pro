@@ -1,0 +1,707 @@
+{% extends "core/base.html" %}
+{% load tz %}
+{% block title %}Appointment History — MediCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+.history-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 18px;
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.page-title-section h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+.page-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn-custom {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 2px solid;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-outline-custom {
+  background: #fff;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+.btn-outline-custom:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+.summary-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #64748b;
+}
+.search-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.search-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.search-input-history {
+  flex: 1;
+  min-width: 250px;
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+.search-input-history:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 3px rgba(0,188,212,0.1);
+}
+.btn-search {
+  padding: 10px 24px;
+  background: #00bcd4;
+  color: #fff;
+  border: 2px solid #00bcd4;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-search:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+.filter-dropdown {
+  position: relative;
+}
+.btn-filter-toggle {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+}
+.btn-filter-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+.filter-menu {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 6px;
+  min-width: 170px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+.filter-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.filter-option {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 500;
+}
+.filter-option:hover {
+  background: #f8fafc;
+  color: #00bcd4;
+}
+.btn-filter-toggle svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+  display: block;
+}
+
+.filter-option.active {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+.search-status {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+.history-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+}
+.card-header-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+.card-header-custom h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+.count-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.table-responsive {
+  overflow-x: auto;
+}
+.table-history {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.table-history thead {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+.table-history th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 700;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.table-history td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+.table-history th:nth-child(5),
+.table-history th:nth-child(6) {
+  padding-left: 17px !important;
+}
+
+.table-history tbody tr:hover {
+  background: #f8fafc;
+}
+.status-badge-history {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+  margin-left: auto;
+}
+.status-completed {
+  background: #dcfce7;
+  color: #15803d;
+}
+.status-cancelled {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-scheduled {
+  background: #eeecec97;
+  color: #080808ff;
+}
+.status-confirmed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.action-link-history {
+  color: #00bcd4;
+  text-decoration: none;
+  font-weight: 600;
+  margin-right: 8px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.action-link-history:hover {
+  text-decoration: underline;
+}
+.btn-reschedule {
+  padding: 5px 12px;
+  background: #fff;
+  color: #00bcd4;
+  border: 2px solid #00bcd4;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-reschedule:hover {
+  background: #00bcd4;
+  color: #fff;
+}
+.empty-state-history {
+  text-align: center;
+  padding: 48px 20px;
+  color: #94a3b8;
+}
+.pagination-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 2px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pagination-info {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+.pagination-nav {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.page-btn {
+  padding: 8px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.page-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+.page-btn-disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+@media (max-width: 768px) {
+  .history-wrapper {
+    padding: 16px 12px;
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .header-actions {
+    width: 100%;
+  }
+  .btn-custom {
+    flex: 1;
+    text-align: center;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+  .search-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+  .search-input-history,
+  .btn-search {
+    width: 100%;
+  }
+  .filter-dropdown,
+  .btn-filter-toggle {
+    width: 100%;
+  }
+  .filter-menu {
+    right: auto;
+    left: 0;
+    width: 100%;
+  }
+  .summary-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .history-card {
+    padding: 14px;
+  }
+  .table-history thead {
+    display: none;
+  }
+  .table-history tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .table-history td {
+    display: block;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+    white-space: normal;
+  }
+  .table-history td:before {
+    content: attr(data-label) ": ";
+    font-weight: 700;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    display: inline-block;
+    min-width: 90px;
+  }
+  .table-history td:last-child {
+    border-bottom: none;
+  }
+  .pagination-wrapper {
+    flex-direction: column;
+  }
+  .btn-reschedule {
+    margin-top: 4px;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-wrapper">
+
+  <div class="page-header">
+    <div class="page-title-section">
+      <h1>Appointment History</h1>
+      <div class="page-subtitle">Past completed or expired appointments</div>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'appointment_list' %}" class="btn-custom btn-outline-custom">← Back to Upcoming</a>
+    </div>
+  </div>
+
+  {% if history %}
+  <div class="summary-bar">
+    <div>Past appointment history</div>
+    <div><strong>Total:</strong> {{ history|length }}</div>
+  </div>
+
+  <form id="history-search-form" method="get" class="search-card" autocomplete="off">
+    <div class="search-filters">
+      <input
+        type="search"
+        id="history-search-input"
+        name="q"
+        value="{{ request.GET.q|default:'' }}"
+        class="search-input-history"
+        placeholder="🔍 Search by name, email, status, date..."
+        autocomplete="off"
+      />
+      <button type="submit" class="btn-search">Search</button>
+      <input type="hidden" name="order" id="orderInput" value="{{ request.GET.order|default:'desc' }}" />
+      <div class="filter-dropdown">
+      <button type="button" class="btn-filter-toggle" id="filterToggle" aria-label="Filter options">
+        <svg xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+      </button>
+
+        <div class="filter-menu" id="filterMenu">
+          <button type="button" class="filter-option {% if request.GET.order != 'asc' %}active{% endif %}" data-value="desc">Newest First</button>
+          <button type="button" class="filter-option {% if request.GET.order == 'asc' %}active{% endif %}" data-value="asc">Oldest First</button>
+        </div>
+      </div>
+    </div>
+    <div id="search-status" class="search-status" aria-live="polite">
+      {% if request.GET.q %}
+        Showing results for "<strong>{{ request.GET.q }}</strong>"
+      {% elif request.GET.order == 'asc' %}
+        Showing oldest first
+      {% elif request.GET.order == 'desc' %}
+        Showing newest first
+      {% else %}
+        Showing all history
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="history-card">
+    <div class="card-header-custom">
+      <h2>Appointment History</h2>
+      <span class="count-badge">{{ history|length }} Total</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table-history">
+        <thead>
+          <tr>
+            <th style="width:22%;">Patient</th>
+            <th style="width:22%;">Doctor</th>
+            <th style="width:12%;">Date</th>
+            <th style="width:11%;">Time</th>
+            <th style="width:12%;">Status</th>
+            <th style="width:21%;">Actions</th>
+          </tr>
+        </thead>
+<tbody id="history-tbody">
+  {% for a in history %}
+  <tr data-appointment-id="{{ a.pk }}" data-date="{% if a.scheduled_time %}{{ a.scheduled_time|localtime|date:'Y-m-d' }}{% endif %}"
+      data-view-url="{% url 'appointment_detail' a.pk %}" style="cursor: pointer;">
+    <td data-label="Patient">
+      {% if a.patient and a.patient.pk %}
+        {% if a.patient.first_name or a.patient.last_name %}
+          {{ a.patient.first_name }} {{ a.patient.last_name }}
+        {% else %}
+          {{ a.patient.email|default:a.patient }}
+        {% endif %}
+      {% else %}
+        <span style="color:#94a3b8;">Deleted Patient</span>
+      {% endif %}
+    </td>
+    <td data-label="Doctor">
+      {% if a.doctor %}
+        Dr. {{ a.doctor.get_full_name|default:a.doctor.username }}
+      {% else %}
+        <span style="color:#94a3b8;">Unassigned</span>
+      {% endif %}
+    </td>
+    <td data-label="Date" style="color:#64748b;">
+      {% if a.scheduled_time %}
+        {{ a.scheduled_time|localtime|date:"Y-m-d" }}
+      {% else %}
+        —
+      {% endif %}
+    </td>
+    <td data-label="Time" style="color:#64748b;">
+      {% if a.scheduled_time %}
+        {{ a.scheduled_time|localtime|time:"g:i A" }}
+      {% else %}
+        —
+      {% endif %}
+    </td>
+    <td data-label="Status">
+      <span class="status-badge-history status-{{ a.status|lower }}">
+        {{ a.get_status_display|default:a.status|title }}
+      </span>
+    </td>
+    <td data-label="Actions">
+      {% if user.role == 'admin' or user.role == 'doctor' %}
+        {# Removed explicit 'View' link #}
+      {% endif %}
+
+      {% if user.is_authenticated %}
+        {% if a.patient and a.patient.user and a.patient.user.is_active %}
+          {% if user.role == 'admin' or user.role == 'receptionist' %}
+            <a href="{% url 'appointment_reschedule' a.pk %}" class="btn-reschedule">Reschedule</a>
+          {% elif a.patient and user.patient and a.patient.pk == user.patient.pk %}
+            <a href="{% url 'appointment_reschedule' a.pk %}" class="btn-reschedule">Reschedule</a>
+          {% endif %}
+        {% endif %}
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+      </table>
+    </div>
+
+    {% if is_paginated %}
+    <div class="pagination-wrapper" id="pagination-wrapper">
+      <div class="pagination-info">
+        Showing <strong>{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong> of <strong>{{ page_obj.paginator.count }}</strong>
+      </div>
+      <ul class="pagination-nav">
+        {% if page_obj.has_previous %}
+        <li>
+          <a href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&{% endif %}{% if request.GET.order %}order={{ request.GET.order }}&{% endif %}page={{ page_obj.previous_page_number }}" class="page-btn">Previous</a>
+        </li>
+        {% else %}
+        <li><span class="page-btn page-btn-disabled">Previous</span></li>
+        {% endif %}
+        <li>
+          <span class="page-btn page-btn-disabled">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+        <li>
+          <a href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&{% endif %}{% if request.GET.order %}order={{ request.GET.order }}&{% endif %}page={{ page_obj.next_page_number }}" class="page-btn">Next</a>
+        </li>
+        {% else %}
+        <li><span class="page-btn page-btn-disabled">Next</span></li>
+        {% endif %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+
+  {% else %}
+  <div class="empty-state-history">
+    <div class="empty-state-icon">📅</div>
+    <div style="font-size:1.1rem; font-weight:600; color:#64748b; margin-bottom:8px;">
+      No past appointments found
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const filterToggle = document.getElementById('filterToggle');
+  const filterMenu = document.getElementById('filterMenu');
+  const form = document.getElementById('history-search-form');
+  const orderInput = document.getElementById('orderInput');
+
+  if (filterToggle && filterMenu) {
+    filterToggle.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      filterMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('click', e => {
+      if (!filterMenu.contains(e.target) && !filterToggle.contains(e.target)) {
+        filterMenu.classList.remove('show');
+      }
+    });
+
+    filterMenu.querySelectorAll('.filter-option').forEach(option => {
+      option.addEventListener('click', e => {
+        e.preventDefault();
+        const val = option.getAttribute('data-value');
+        if (orderInput && form) {
+          orderInput.value = val;
+          filterMenu.classList.remove('show');
+          form.submit();
+        }
+      });
+    });
+  }
+
+  const input = document.getElementById('history-search-input');
+  const status = document.getElementById('search-status');
+
+  function debounce(fn, delay) {
+    let timer = null;
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delay);
+    }
+  }
+
+  async function fetchAndReplace(q) {
+    const url = new URL(window.location.href);
+    if (q) {
+      url.searchParams.set('q', q);
+    } else {
+      url.searchParams.delete('q');
+    }
+    url.searchParams.delete('page');
+    try {
+      status.textContent = 'Searching...';
+      const res = await fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      const text = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+      const newTbody = doc.getElementById('history-tbody');
+      const newPagination = doc.getElementById('pagination-wrapper');
+      const oldTbody = document.getElementById('history-tbody');
+      const oldPagination = document.getElementById('pagination-wrapper');
+      if (oldTbody && newTbody) oldTbody.innerHTML = newTbody.innerHTML;
+      if (oldPagination && newPagination) oldPagination.innerHTML = newPagination.innerHTML;
+      status.textContent = q ? `Showing results for "${q}"` : 'Showing all history';
+    } catch (err) {
+      console.error('Search failed:', err);
+      status.textContent = 'Search failed — showing current results';
+    }
+  }
+// Make history rows clickable to view appointment detail
+  function attachHistoryRowClicks() {
+    document.querySelectorAll('#history-tbody tr').forEach(function(row) {
+      const viewUrl = row.getAttribute('data-view-url');
+      if (!viewUrl) return;
+
+      row.onclick = function(e) {
+        // Ignore clicks on links/buttons inside row
+        if (e.target.closest('a') || e.target.closest('button')) {
+          return;
+        }
+        window.location.href = viewUrl;
+      };
+    });
+  }
+
+  // Attach on page load
+  attachHistoryRowClicks();
+
+  if (input) {
+    input.addEventListener('input', debounce(e => {
+      const q = (e.target.value || '').trim();
+      fetchAndReplace(q);
+    }, 300));
+  }
+})();
+</script>
+{% endblock %}

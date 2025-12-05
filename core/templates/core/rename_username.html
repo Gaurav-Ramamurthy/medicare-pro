@@ -1,0 +1,36 @@
+{% extends "core/base.html" %}
+{% block title %}Change Username — MediCare Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height:70vh;">
+  <div class="card card-lg" style="max-width:420px; width:100%;">
+    <div class="card-body">
+
+      <h2 class="h5 text-center mb-3">Change Username</h2>
+
+      {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+            <div class="alert alert-info py-2 mb-2">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="{{ form.new_username.id_for_label }}" class="form-label fw-semibold">New Username</label>
+          {{ form.new_username }}
+          {% if form.new_username.errors %}
+            <div class="text-danger small mt-1">{{ form.new_username.errors }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Update Username</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

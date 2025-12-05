@@ -1,0 +1,48 @@
+{% extends "core/base.html" %}
+{% block title %}Daily Appointments — MediCare Pro{% endblock %}
+
+{% block content %}
+<div class="container my-4" style="max-width:800px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 mb-0">Appointments for {{ date }}</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">← Back</a>
+  </div>
+
+  <div class="card card-lg">
+    <div class="card-body">
+
+      {% if appointments %}
+        <ul class="list-group">
+          {% for a in appointments %}
+            <li class="list-group-item d-flex flex-column">
+              <div class="fw-semibold">
+                {% if a.scheduled_time %}
+                  {{ a.scheduled_time|date:"g:i A" }}
+                {% else %}
+                  <span class="text-muted">No time</span>
+                {% endif %}
+              </div>
+
+              <div class="text-muted small">
+                {{ a.patient }}  
+                {% if a.doctor %}  
+                  — with {{ a.doctor }}  
+                {% endif %}
+                <span class="badge bg-light text-dark ms-2">{{ a.status|title }}</span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+
+      {% else %}
+        <div class="text-center text-muted py-3">
+          No appointments.
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

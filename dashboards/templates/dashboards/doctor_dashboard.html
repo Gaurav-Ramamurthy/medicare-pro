@@ -1,0 +1,242 @@
+{% extends "core/base.html" %}
+{% load tz %}
+{% block title %}Doctor Dashboard — MediCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Outer wrapper – increase width here */
+.doctor-dashboard-outer {
+  max-width: 1600px;              /* wide dashboard */
+  margin: 20px auto 32px auto;    /* center on page */
+  padding: 0 24px;                /* side padding */
+}
+
+/* Header row (Dr. name + buttons) */
+.doctor-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+  margin-bottom: 16px;
+  margin-left: -75px;             /* your custom desktop alignment */
+  width: 1300px;                  /* your custom desktop width */
+}
+
+/* Quick stats layout: 6 cards in one line on large screens */
+.doctor-dashboard-statcards {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));  /* 6 cards in one row */
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+  .doctor-dashboard-statcards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 768px) {
+  .doctor-dashboard-statcards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .doctor-dashboard-statcards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card size + style (compact) */
+.dd-stat-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10);
+  border: 1px solid #e2edf7;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 80px;
+}
+
+/* Left accents */
+.dd-patients { border-left: 3px solid #22c55e; }
+.dd-appts { border-left: 3px solid #0ea5e9; }
+.dd-scheduled { border-left: 3px solid #f97316; }
+.dd-completed { border-left: 3px solid #10b981; }
+.dd-cancelled { border-left: 3px solid #ef4444; }
+.dd-today { border-left: 3px solid #8b5cf6; }
+
+/* Typography compact for stats */
+.stat-name {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #9ca3af;
+  margin-bottom: 2px;
+}
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+.stat-note {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+.stat-note a {
+  color: #0ea5e9;
+  text-decoration: none;
+}
+.stat-note a:hover {
+  text-decoration: underline;
+}
+.stat-note.orange { color: #ea580c; }
+.stat-note.green { color: #16a34a; }
+.stat-note.red { color: #b91c1c; }
+.stat-note.purple { color: #7c3aed; }
+
+.text-muted { color: #9ca3af; }
+
+/* MOBILE FIX: make header full-width and connected to cards */
+@media (max-width: 768px) {
+  .doctor-dashboard-header {
+    margin-left: 0;           /* remove negative margin */
+    width: 100%;              /* header fills container width */
+    flex-direction: column;   /* stack name and buttons vertically */
+    align-items: flex-start;
+  }
+
+  .doctor-dashboard-outer {
+    padding: 0 12px;          /* slightly smaller padding on small screens */
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="doctor-dashboard-outer">
+
+  <!-- Welcome Banner (keep your existing colors/content) -->
+  <div class="doctor-dashboard-wrapper" style="margin-top: 30px;">
+    <div class="doctor-dashboard-header">
+      <div>
+        <h2 class="dd-main-title">
+          Dr. {{ user.get_full_name|default:user.username|title }}'s Dashboard
+        </h2>
+        <div class="dd-subtitle">
+          Your medical practice overview • {{ now|localtime|date:"m/d/Y" }}
+        </div>
+      </div>
+      <div class="dd-header-actions">
+        <a href="{% url 'appointment_list' %}" class="cyan-btn-outline no-underline">View Appointments</a>
+        <a href="{% url 'patient_list' %}" class="cyan-btn-outline no-underline">Manage Patients</a>
+      </div>
+    </div>
+    <!-- rest of your teal banner styling stays in base CSS -->
+  </div>
+
+  <!-- Quick stats cards -->
+  <div class="doctor-dashboard-statcards">
+    <div class="dd-stat-card dd-patients">
+      <div class="stat-name">My Patients</div>
+      <div class="stat-value">{{ patient_count|default:"0" }}</div>
+      <div class="stat-note"><a href="{% url 'patient_list' %}" class="no-underline">All Patients</a></div>
+    </div>
+    <div class="dd-stat-card dd-appts">
+      <div class="stat-name">Total Appointments</div>
+      <div class="stat-value">{{ appt_count|default:"0" }}</div>
+      <div class="stat-note">All Time</div>
+    </div>
+    <div class="dd-stat-card dd-scheduled">
+      <div class="stat-name">Scheduled</div>
+      <div class="stat-value">{{ appts_scheduled|default:"0" }}</div>
+      <div class="stat-note orange">Upcoming</div>
+    </div>
+    <div class="dd-stat-card dd-completed">
+      <div class="stat-name">Completed</div>
+      <div class="stat-value">{{ appts_completed|default:"0" }}</div>
+      <div class="stat-note green">Success</div>
+    </div>
+    <div class="dd-stat-card dd-cancelled">
+      <div class="stat-name">Cancelled</div>
+      <div class="stat-value">{{ appts_cancelled|default:"0" }}</div>
+      <div class="stat-note red">Missed</div>
+    </div>
+    <div class="dd-stat-card dd-today">
+      <div class="stat-name">Today</div>
+      <div class="stat-value">{{ appts_today|default:"0" }}</div>
+      <div class="stat-note purple">Appointments</div>
+    </div>
+  </div>
+
+  <!-- Today's Appointments Table (unchanged) -->
+  <div class="doctor-table-card">
+    <div class="doctor-table-header">
+      <span class="doctor-table-title">Today's Appointments</span>
+      <span class="doctor-table-date">{{ now|localtime|date:"M j, Y" }}</span>
+    </div>
+    {% if appts_today_list %}
+      <div class="doctor-table-scroll">
+        <table class="doctor-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Patient</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th>View</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for appt in appts_today_list %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                  {% if appt.patient %}
+                    {% if appt.patient.first_name or appt.patient.last_name %}
+                      {{ appt.patient.first_name }} {{ appt.patient.last_name }}
+                    {% else %}
+                      {{ appt.patient.email|default:appt.patient }}
+                    {% endif %}
+                  {% else %}
+                    <span class="text-muted">(no patient)</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if appt.scheduled_time %}
+                    {{ appt.scheduled_time|localtime|time:"g:i A" }}
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if appt.status == 'pending' %}
+                    <span class="appt-badge badge-orange">Pending</span>
+                  {% elif appt.status == 'completed' %}
+                    <span class="appt-badge badge-green">Completed</span>
+                  {% elif appt.status == 'cancelled' %}
+                    <span class="appt-badge badge-red">Cancelled</span>
+                  {% else %}
+                    <span class="appt-badge badge-secondary">{{ appt.status|default:"Unknown"|title }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'appointment_detail' appt.id %}" class="doctor-table-action no-underline">View</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="doctor-table-empty">
+        <span class="empty-icon">📅</span>
+        <div>No appointments today.</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

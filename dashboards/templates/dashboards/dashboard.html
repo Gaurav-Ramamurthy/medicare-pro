@@ -1,0 +1,128 @@
+{% extends "core/base.html" %}
+{% load tz %}
+{% load humanize %}
+
+{% block title %}Dashboard | MediCare Pro{% endblock %}
+
+{% block content %}
+<div class="patient-dashboard-wrapper">
+  <div class="patient-dashboard-header">
+    <div class="pd-header-left">
+      <h1>Welcome back, {{ user.get_full_name|default:user.username }} <span>👋</span></h1>
+      <div class="pd-role">
+        Your health overview • {{ now|localtime|date:"m/d/Y" }}
+      </div>
+    </div>
+    <a href="{% url 'appointment_add' %}" class="cyan-btn dash-hero-btn">Book Appointment</a>
+  </div>
+
+  <div class="patient-dashboard-cards">
+    <div class="stat-card patient-stat-blue">
+      <div class="stat-icon"><span>📅</span></div>
+      <div class="stat-label">Total Appointments</div>
+      <div class="stat-number">{{ stats.total_appointments|default:"0" }}</div>
+    </div>
+    <div class="stat-card patient-stat-yellow">
+      <div class="stat-icon"><span>⏰</span></div>
+      <div class="stat-label">Scheduled</div>
+      <div class="stat-number">{{ stats.scheduled_appointments|default:"0" }}</div>
+    </div>
+    <div class="stat-card patient-stat-green">
+      <div class="stat-icon"><span>✅</span></div>
+      <div class="stat-label">Completed</div>
+      <div class="stat-number">{{ stats.completed_appointments|default:"0" }}</div>
+    </div>
+  </div>
+
+  <div class="patient-appointments-row">
+    <div class="appt-card appt-card-main">
+      <div class="appt-card-header">
+        <span>Upcoming Appointments</span>
+        <a href="{% url 'appointment_list' %}" class="dash-view-link">View All →</a>
+      </div>
+      {% if upcoming_appointments %}
+        <div class="appointments-list">
+          {% for appt in upcoming_appointments %}
+            <div class="appointment-row">
+              <div class="appt-icon">📅</div>
+              <div class="appt-main">
+                <div class="appt-date">{{ appt.scheduled_time|localtime|date:"M j, Y" }}</div>
+                <div class="appt-info">
+                  {{ appt.patient.get_full_name|default:"Patient" }} &bull;
+                  {{ appt.doctor.get_full_name|default:"Doctor" }}
+                </div>
+              </div>
+              <div class="appt-status">{{ appt.get_status_display|title }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-appointments">
+          <div class="empty-icon">📅</div>
+          <div class="empty-text">No upcoming appointments</div>
+        </div>
+      {% endif %}
+    </div>
+    <div class="appt-card">
+      <div class="appt-card-header">
+        <span>Recent Appointments</span>
+        <a href="{% url 'appointment_history' %}" class="dash-view-link">View All →</a>
+      </div>
+      {% if recent_appointments %}
+        <div class="appointments-list">
+          {% for appt in recent_appointments %}
+            <div class="appointment-row">
+              <div class="appt-icon">📝</div>
+              <div class="appt-main">
+                <div class="appt-date">{{ appt.scheduled_time|localtime|date:"M j, Y" }}</div>
+                <div class="appt-info">
+                  {{ appt.patient.get_full_name|default:"Patient" }} &bull;
+                  {{ appt.doctor.get_full_name|default:"Doctor" }}
+                </div>
+              </div>
+              <div class="appt-status">{{ appt.get_status_display|title }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-appointments">
+          <div class="empty-icon">📝</div>
+          <div class="empty-text">No completed appointments yet</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="application/json" id="django-messages">
+[
+  {% for message in messages %}
+  {
+    "level": "{% if 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% elif 'success' in message.tags %}success{% else %}info{% endif %}",
+    "text": "{{ message|escapejs }}"
+  }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+]
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const messagesEl = document.getElementById('django-messages');
+  if (messagesEl) {
+    try {
+      const messages = JSON.parse(messagesEl.textContent);
+      messages.forEach(msg => {
+        if (Toast[msg.level]) {
+          Toast[msg.level](msg.text);
+        } else {
+          Toast.info(msg.text);
+        }
+      });
+    } catch (e) {
+      console.error('Failed to parse Django messages JSON for toast:', e);
+    }
+  }
+});
+</script>
+{% endblock %}

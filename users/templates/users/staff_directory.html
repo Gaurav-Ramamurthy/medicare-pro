@@ -1,0 +1,1179 @@
+{% extends "core/base.html" %}
+
+{% block title %}Staff Directory — MediCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+.staff-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 18px;
+}
+
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+
+.page-title-section h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+
+.page-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+
+.btn-outline-custom {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 2px solid #cbd5e1;
+  color: #64748b;
+  background: #fff;
+  transition: all 0.2s;
+}
+
+
+.btn-outline-custom:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+
+/* Tabs */
+.role-tabs {
+  display: inline-flex;
+  border-radius: 999px;
+  background: #e2f3ff;
+  padding: 4px;
+  margin: 18px 0 14px;
+}
+
+
+.role-tab {
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: #0369a1;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+
+.role-tab.active {
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgba(15,23,42,0.12);
+  color: #0f172a;
+}
+
+
+/* SEARCH CARD */
+.search-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+
+.search-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+
+.search-input-history {
+  flex: 1;
+  min-width: 250px;
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #334155;
+  transition: all 0.2s;
+}
+
+
+.search-input-history:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 3px rgba(0,188,212,0.1);
+}
+
+
+.btn-search {
+  padding: 10px 24px;
+  background: #00bcd4;
+  color: #fff;
+  border: 2px solid #00bcd4;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+
+.btn-search:hover {
+  background: #00acc1;
+  border-color: #00acc1;
+}
+
+
+.filter-dropdown {
+  position: relative;
+}
+
+
+.btn-filter-toggle {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+}
+
+
+.btn-filter-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+
+.btn-filter-toggle:active {
+  background: #e2e8f0;
+}
+
+
+.btn-filter-toggle svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+  display: block;
+}
+
+
+.filter-menu {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 6px;
+  min-width: 170px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+
+.filter-menu.show {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+  display: block !important;
+}
+
+
+.filter-menu .filter-option {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+
+.filter-menu .filter-option:hover {
+  background: #f8fafc;
+  color: #00bcd4;
+}
+
+
+.filter-menu .filter-option.active {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.filter-section { display: block; }
+.filter-label {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f9fafb;
+  border-radius: 4px;
+  margin: 4px 6px;
+}
+.filter-divider {
+  margin: 8px 0;
+  border: none;
+  border-top: 1px solid #e2e8f0;
+}
+
+
+.search-status {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+
+/* Card grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+
+/* Cards - CLICKABLE */
+.staff-card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+
+.staff-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(15,23,42,0.15);
+  border-color: #00bcd4;
+}
+
+
+.card-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+
+.avatar-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #0284c7;
+}
+
+
+.card-name {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+
+.card-subtitle {
+  font-size: 0.9rem;
+  color: #0284c7;
+}
+
+
+/* Info list */
+.card-info {
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+
+.card-info-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+
+.card-info-label {
+  font-weight: 600;
+  color: #64748b;
+}
+
+
+/* Footer */
+.card-footer {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+.status-active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+
+.status-inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+}
+
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background: rgba(15,23,42,0.55);
+}
+
+
+.modal-content {
+  background: #ffffff;
+  max-width: 720px;
+  margin: 150px auto 40px;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(15,23,42,0.4);
+  overflow: hidden;
+}
+
+
+.modal-header {
+  padding: 18px 24px;
+  background: #0ea5e9;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.modal-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+
+.modal-close {
+  border: none;
+  background: transparent;
+  color: #e0f2fe;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+
+.modal-body {
+  padding: 20px 24px 24px;
+}
+
+
+.modal-body-layout {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+
+.modal-photo {
+  width: 110px;
+  height: 110px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+
+.modal-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
+.modal-details {
+  flex: 1;
+  min-width: 220px;
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+
+.modal-details p {
+  margin: 2px 0 6px;
+}
+
+
+.modal-details span.label {
+  font-weight: 600;
+  color: #64748b;
+}
+
+
+/* Modal footer */
+.modal-footer {
+  padding: 14px 24px 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+}
+
+
+.modal-btn {
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+.modal-btn-edit {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+
+.modal-btn-edit:hover {
+  background: #dbeafe;
+}
+
+
+.modal-btn-delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+
+.modal-btn-delete:hover {
+  background: #fecaca;
+}
+
+
+/* Mobile */
+@media (max-width: 768px) {
+  .staff-wrapper {
+    padding: 18px 12px;
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .search-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+  .search-input-history,
+  .btn-search {
+    width: 100%;
+  }
+  .filter-dropdown {
+    width: 100%;
+  }
+  .btn-filter-toggle {
+    width: 100%;
+  }
+  .filter-menu {
+    right: auto;
+    left: 0;
+    width: 100%;
+  }
+  .modal-content {
+    margin: 80px 12px 40px;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="staff-wrapper">
+
+  <div class="page-header">
+    <div class="page-title-section">
+      <h1>Staff Directory</h1>
+      <div class="page-subtitle">Browse and manage admins, doctors and receptionists</div>
+    </div>
+    <a href="{% url 'admin_dashboard' %}" class="btn-outline-custom">← Dashboard</a>
+  </div>
+
+  <!-- Tabs -->
+  <div class="role-tabs">
+    <button type="button" class="role-tab active" data-target="adminsTab">Admins</button>
+    <button type="button" class="role-tab" data-target="doctorsTab">Doctors</button>
+    <button type="button" class="role-tab" data-target="receptionistsTab">Receptionists</button>
+  </div>
+
+  <!-- Search form -->
+  <form id="searchForm" method="get" action="" class="search-card" autocomplete="off">
+    <div class="search-filters">
+      <input
+        id="staffSearchInput"
+        name="q"
+        type="search"
+        value="{{ q|default:'' }}"
+        class="search-input-history"
+        placeholder="🔍 Search by name, email, phone, specialization..."
+        aria-label="Search staff"
+        autocomplete="off">
+      <button type="button" class="btn-search" id="searchBtn">Search</button>
+      <input type="hidden" name="sort" id="sortInput" value="{{ sort|default:'name' }}">
+      <div class="filter-dropdown">
+        <button type="button" class="btn-filter-toggle" id="filterToggle" aria-label="Filter options">
+          <svg xmlns="http://www.w3.org/2000/svg" 
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+        </button>
+        <div class="filter-menu" id="filterMenu">
+        <!-- ADMIN FILTERS -->
+        <div id="adminFilters">
+            <div class="filter-label">Sort Options</div>
+            <button type="button" class="filter-option active" data-sort="name">Sort by Name</button>
+            <button type="button" class="filter-option" data-sort="created">Sort by Created</button>
+        </div>
+
+        <!-- DOCTOR FILTERS -->
+        <div id="doctorFilters" style="display:none;">
+            <div class="filter-label">Sort Options</div>
+            <button type="button" class="filter-option" data-sort="name">Sort by Name</button>
+            <button type="button" class="filter-option active" data-sort="created">Sort by Created</button>
+            
+            <hr class="filter-divider">
+            <div class="filter-label">Experience</div>
+            <button type="button" class="filter-option" data-experience="junior">0-3 Years</button>
+            <button type="button" class="filter-option" data-experience="mid">4-7 Years</button>
+            <button type="button" class="filter-option" data-experience="senior">8+ Years</button>
+        </div>
+
+        <!-- RECEPTIONIST FILTERS -->
+        <div id="receptionistFilters" style="display:none;">
+            <div class="filter-label">Sort Options</div>
+            <button type="button" class="filter-option" data-sort="name">Sort by Name</button>
+            <button type="button" class="filter-option active" data-sort="created">Sort by Created</button>
+        </div>
+        </div>
+
+      </div>
+    </div>
+    <div id="search-status" class="search-status" aria-live="polite">
+      {% if q %}
+        Showing results for "<strong>{{ q }}</strong>"
+      {% else %}
+        Showing all staff
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Admins tab -->
+  <div id="adminsTab" class="staff-tab">
+    {% if admins %}
+      <div class="card-grid" id="adminsGrid">
+        {% for a in admins %}
+        <div class="staff-card"
+             data-role="admin"
+             data-created="{{ user.date_joined|date:'Y-m-d' }}"
+             data-user-id="{{ a.id }}"
+             data-name="{{ a.first_name }} {{ a.last_name }}"
+             data-email="{{ a.email }}"
+             data-phone="{{ a.staff.phone|default:'—' }}"
+             data-specialization="Admin"
+             data-experience=""
+             data-registration=""
+             data-notes="{{ a.staff.notes|default:'' }}"
+             data-photo="{% if a.staff.profile_photo %}{{ a.staff.profile_photo.url }}{% else %}#{% endif %}"
+             data-status="{{ a.is_active|yesno:"Active,Inactive" }}"
+             data-edit-url="{% url 'staff_edit' pk=a.id %}"
+             data-delete-url="{% url 'staff_delete' a.id %}">
+          <div class="card-header">
+            <div class="avatar-circle">
+              {{ a.first_name|slice:":1"|default:"A" }}
+            </div>
+            <div>
+              <div class="card-name">{{ a.first_name }} {{ a.last_name }}</div>
+              <div class="card-subtitle">Admin</div>
+            </div>
+          </div>
+          <div class="card-info">
+            <div class="card-info-row">
+              <span class="card-info-label">Email:</span>
+              <span>{{ a.email|default:"—" }}</span>
+            </div>
+            <div class="card-info-row">
+              <span class="card-info-label">Phone:</span>
+              <span>{{ a.staff.phone|default:"—" }}</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="status-badge {% if a.is_active %}status-active{% else %}status-inactive{% endif %}">
+              ● {{ a.is_active|yesno:"Active,Inactive" }}
+            </span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">No admins found.</div>
+    {% endif %}
+  </div>
+
+  <!-- Doctors tab -->
+  <div id="doctorsTab" class="staff-tab" style="display:none;">
+    {% if doctors %}
+      <div class="card-grid" id="doctorsGrid">
+        {% for d in doctors %}
+        <div class="staff-card"
+             data-role="doctor"
+             data-created="{{ user.date_joined|date:'Y-m-d' }}"
+             data-user-id="{{ d.id }}"
+             data-name="{{ d.first_name }} {{ d.last_name }}"
+             data-email="{{ d.email }}"
+             data-phone="{{ d.staff.phone|default:'—' }}"
+             data-specialization="{{ d.staff.specialization|default:'General Medicine' }}"
+             data-experience="{% if d.staff.experience_years %}{% if d.staff.experience_years <= 3 %}junior{% elif d.staff.experience_years <= 7 %}mid{% else %}senior{% endif %}{% endif %}"
+             data-registration="{{ d.staff.registration_number|default:'' }}"
+             data-notes="{{ d.staff.notes|default:'' }}"
+             data-photo="{% if d.staff.profile_photo %}{{ d.staff.profile_photo.url }}{% else %}#{% endif %}"
+             data-status="{{ d.is_active|yesno:"Active,Inactive" }}"
+             data-edit-url="{% url 'staff_edit' pk=d.id %}"
+             data-delete-url="{% url 'staff_delete' d.id %}">
+          <div class="card-header">
+            <div class="avatar-circle">
+              {{ d.first_name|slice:":1"|default:"D" }}
+            </div>
+            <div>
+              <div class="card-name">Dr. {{ d.first_name }} {{ d.last_name }}</div>
+              <div class="card-subtitle">
+                {{ d.staff.specialization|default:"General Medicine" }}
+              </div>
+            </div>
+          </div>
+          <div class="card-info">
+            <div class="card-info-row">
+              <span class="card-info-label">Email:</span>
+              <span>{{ d.email|default:"—" }}</span>
+            </div>
+            <div class="card-info-row">
+              <span class="card-info-label">Phone:</span>
+              <span>{{ d.staff.phone|default:"—" }}</span>
+            </div>
+            <div class="card-info-row">
+              <span class="card-info-label">Experience:</span>
+              <span>
+                {% if d.staff.experience_years %}
+                  {{ d.staff.experience_years }} years
+                {% else %}
+                  —
+                {% endif %}
+              </span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="status-badge {% if d.is_active %}status-active{% else %}status-inactive{% endif %}">
+              ● {{ d.is_active|yesno:"Active,Inactive" }}
+            </span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">No doctors found.</div>
+    {% endif %}
+  </div>
+
+  <!-- Receptionists tab -->
+  <div id="receptionistsTab" class="staff-tab" style="display:none;">
+    {% if receptionists %}
+      <div class="card-grid" id="receptionistsGrid">
+        {% for r in receptionists %}
+        <div class="staff-card"
+             data-role="receptionist"
+             data-created="{{ user.date_joined|date:'Y-m-d' }}"
+             data-user-id="{{ r.id }}"
+             data-name="{{ r.first_name }} {{ r.last_name }}"
+             data-email="{{ r.email }}"
+             data-phone="{{ r.staff.phone|default:'—' }}"
+             data-specialization="Receptionist"
+             data-experience="{{ r.staff.experience_years|default:'' }}"
+             data-registration=""
+             data-notes="{{ r.staff.notes|default:'' }}"
+             data-photo="{% if r.staff.profile_photo %}{{ r.staff.profile_photo.url }}{% else %}#{% endif %}"
+             data-status="{{ r.is_active|yesno:"Active,Inactive" }}"
+             data-edit-url="{% url 'staff_edit' pk=r.id %}"
+             data-delete-url="{% url 'staff_delete' r.id %}">
+          <div class="card-header">
+            <div class="avatar-circle">
+              {{ r.first_name|slice:":1"|default:"R" }}
+            </div>
+            <div>
+              <div class="card-name">{{ r.first_name }} {{ r.last_name }}</div>
+              <div class="card-subtitle">Receptionist</div>
+            </div>
+          </div>
+          <div class="card-info">
+            <div class="card-info-row">
+              <span class="card-info-label">Email:</span>
+              <span>{{ r.email|default:"—" }}</span>
+            </div>
+            <div class="card-info-row">
+              <span class="card-info-label">Phone:</span>
+              <span>{{ r.staff.phone|default:"—" }}</span>
+            </div>
+            <div class="card-info-row">
+              <span class="card-info-label">Shift:</span>
+              <span>9 AM - 6 PM</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="status-badge {% if r.is_active %}status-active{% else %}status-inactive{% endif %}">
+              ● {{ r.is_active|yesno:"Active,Inactive" }}
+            </span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">No receptionists found.</div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- VIEW MODAL -->
+<div id="staffModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Staff Details</div>
+      <button type="button" class="modal-close" id="modalCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-body-layout">
+        <div class="modal-photo" id="modalPhoto">
+          <span>No photo</span>
+        </div>
+        <div class="modal-details">
+          <p><span class="label">Name:</span> <span id="modalName">—</span></p>
+          <p><span class="label">Role:</span> <span id="modalRole">—</span></p>
+          <p id="modalSpecRow"><span class="label">Specialization:</span> <span id="modalSpec">—</span></p>
+          <p><span class="label">Email:</span> <span id="modalEmail">—</span></p>
+          <p><span class="label">Phone:</span> <span id="modalPhone">—</span></p>
+          <p id="modalExpRow"><span class="label">Experience:</span> <span id="modalExp">—</span></p>
+          <p id="modalRegRow" style="display:none;"><span class="label">Registration:</span> <span id="modalReg">—</span></p>
+          <p><span class="label">Status:</span> <span id="modalStatus">—</span></p>
+          <p id="modalNotesRow" style="display:none;"><span class="label">Notes:</span> <span id="modalNotes">—</span></p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a id="modalEditLink" href="#" class="modal-btn modal-btn-edit">Edit</a>
+      <form id="modalDeleteForm" method="post" action="" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="modal-btn modal-btn-delete"
+                onclick="return confirm('Are you sure you want to delete this staff member?');">
+          Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const tabs = document.querySelectorAll('.role-tab');
+  const staffTabs = {
+    adminsTab: document.getElementById('adminsTab'),
+    doctorsTab: document.getElementById('doctorsTab'),
+    receptionistsTab: document.getElementById('receptionistsTab')
+  };
+  const searchInput = document.getElementById('staffSearchInput');
+
+  function setActiveTab(targetId) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.target === targetId));
+    for (const id in staffTabs) {
+      staffTabs[id].style.display = (id === targetId) ? 'block' : 'none';
+    }
+
+    // Show correct filter section
+    document.getElementById('adminFilters').style.display = targetId === 'adminsTab' ? 'block' : 'none';
+    document.getElementById('doctorFilters').style.display = targetId === 'doctorsTab' ? 'block' : 'none';
+    document.getElementById('receptionistFilters').style.display = targetId === 'receptionistsTab' ? 'block' : 'none';
+
+    // Default: Sort by Name on tab switch (works per section)
+    const nameBtn = document.querySelector(`#${targetId.replace('Tab', 'Filters')} [data-sort="name"]`);
+    if (nameBtn) {
+      const parentSection = nameBtn.closest('.filter-section');
+      if (parentSection) {
+        parentSection.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+      }
+      nameBtn.classList.add('active');
+      sortCards('name');
+      updateStatusText('Showing all staff');
+    }
+
+    if (searchInput) {
+      searchInput.value = '';
+      filterCards('');
+    }
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => setActiveTab(tab.dataset.target));
+  });
+
+  function getActiveGrid() {
+    const activeId = document.querySelector('.role-tab.active').dataset.target;
+    if (activeId === 'adminsTab') return document.getElementById('adminsGrid');
+    if (activeId === 'doctorsTab') return document.getElementById('doctorsGrid');
+    return document.getElementById('receptionistsGrid');
+  }
+
+  function filterCards(query) {
+    const container = getActiveGrid();
+    if (!container) return;
+    const q = (query || '').toLowerCase();
+    container.querySelectorAll('.staff-card').forEach(card => {
+      const text = (card.dataset.name + ' '
+                    + card.dataset.email + ' '
+                    + card.dataset.phone + ' '
+                    + card.dataset.specialization).toLowerCase();
+      card.style.display = text.includes(q) ? '' : 'none';
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      filterCards(this.value);
+    });
+  }
+
+  const searchBtn = document.getElementById('searchBtn');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', function(){
+      filterCards(searchInput.value);
+    });
+  }
+
+  // Sorting and filtering logic with toggle to default if same filter clicked again
+  const filterToggle = document.getElementById('filterToggle');
+  const filterMenu = document.getElementById('filterMenu');
+
+  if (filterToggle && filterMenu) {
+    filterToggle.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      filterMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('click', e => {
+      if (!filterMenu.contains(e.target) && !filterToggle.contains(e.target)) {
+        filterMenu.classList.remove('show');
+      }
+    });
+
+    filterMenu.querySelectorAll('.filter-option').forEach(option => {
+      option.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const isActive = option.classList.contains('active');
+        const isSort   = !!option.dataset.sort;
+        const isExp    = !!option.dataset.experience;
+        const isShift  = !!option.dataset.shift;
+
+        // Decide the group for this option (sort / experience / shift)
+        let group = null;
+        if (isSort) {
+          group = option.closest('.filter-group-sort') || option.closest('.filter-section');
+        } else if (isExp) {
+          group = option.closest('.filter-group-experience') || option.closest('.filter-section');
+        } else if (isShift) {
+          group = option.closest('.filter-group-shift') || option.closest('.filter-section');
+        } else {
+          group = option.closest('.filter-section');
+        }
+
+        // Clear active only inside this group
+        if (group) {
+          group.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+        }
+
+        if (isActive) {
+          // If already active, reset that group (show all staff, sort by name)
+          showAllCardsForRole();
+          sortCards('name');
+          updateStatusText('Showing all staff');
+        } else {
+          option.classList.add('active');
+          showAllCardsForRole();
+
+          if (isSort) {
+            sortCards(option.dataset.sort);
+            updateStatusText(`Sorted by: ${option.textContent.trim()}`);
+          } else if (isExp) {
+            filterByExperience(option.dataset.experience);
+            updateStatusText(`Filter: ${option.textContent.trim()}`);
+          } else if (isShift) {
+            filterByShift(option.dataset.shift);
+            updateStatusText(`Filter: ${option.textContent.trim()}`);
+          }
+        }
+
+        filterMenu.classList.remove('show');
+      });
+    });
+  }
+
+  function showAllCardsForRole() {
+    const grid = getActiveGrid();
+    if (!grid) return;
+    grid.querySelectorAll('.staff-card').forEach(card => card.style.display = '');
+  }
+
+  function sortCards(sortBy) {
+    const grid = getActiveGrid();
+    if (!grid) return;
+
+    const cards = Array.from(grid.querySelectorAll('.staff-card'));
+
+    if (sortBy === 'name') {
+      cards.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
+    } else if (sortBy === 'created') {
+      cards.sort((a, b) => new Date(b.dataset.created || '1970-01-01') - new Date(a.dataset.created || '1970-01-01'));
+    }
+
+    grid.innerHTML = '';
+    cards.forEach(card => grid.appendChild(card));
+  }
+
+  function filterByExperience(exp) {
+    const grid = getActiveGrid();
+    if (!grid) return;
+
+    grid.querySelectorAll('.staff-card').forEach(card => {
+      if (exp && card.dataset.experience !== exp) {
+        card.style.display = 'none';
+      } else {
+        card.style.display = '';
+      }
+    });
+  }
+
+  function filterByShift(shift) {
+    const grid = getActiveGrid();
+    if (!grid) return;
+
+    grid.querySelectorAll('.staff-card').forEach(card => {
+      if (shift && card.dataset.shift !== shift) {
+        card.style.display = 'none';
+      } else {
+        card.style.display = '';
+      }
+    });
+  }
+
+  function updateStatusText(text) {
+    const statusEl = document.getElementById('search-status');
+    statusEl.textContent = text;
+  }
+
+  // Modal functions - unchanged
+  const modal = document.getElementById('staffModal');
+  const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+  const mTitle = document.getElementById('modalTitle');
+  const mPhoto = document.getElementById('modalPhoto');
+  const mName = document.getElementById('modalName');
+  const mRole = document.getElementById('modalRole');
+  const mSpec = document.getElementById('modalSpec');
+  const mEmail = document.getElementById('modalEmail');
+  const mPhone = document.getElementById('modalPhone');
+  const mExp = document.getElementById('modalExp');
+  const mRegRow = document.getElementById('modalRegRow');
+  const mReg = document.getElementById('modalReg');
+  const mStatus = document.getElementById('modalStatus');
+  const mNotes = document.getElementById('modalNotes');
+
+  const modalEditLink = document.getElementById('modalEditLink');
+  const modalDeleteForm = document.getElementById('modalDeleteForm');
+
+  function openModalFromCard(card) {
+    const role = card.dataset.role || 'Staff';
+    const name = card.dataset.name || '—';
+    const email = card.dataset.email || '—';
+    const phone = card.dataset.phone || '—';
+    const spec = card.dataset.specialization || (role === 'doctor' ? 'General Medicine' : '—');
+    const exp = card.dataset.experience ? card.dataset.experience + ' years' : '—';
+    const reg = card.dataset.registration || '';
+    const status = card.dataset.status || '—';
+    const notes = card.dataset.notes || '—';
+    const photo = card.dataset.photo;
+    const editUrl = card.dataset.editUrl;
+    const deleteUrl = card.dataset.deleteUrl;
+
+    if (role === 'doctor') {
+      mTitle.textContent = 'Doctor Details';
+    } else if (role === 'receptionist') {
+      mTitle.textContent = 'Receptionist Details';
+    } else {
+      mTitle.textContent = 'Admin Details';
+    }
+
+    mName.textContent = name;
+    mRole.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+    mEmail.textContent = email;
+    mPhone.textContent = phone;
+
+    if (role === 'doctor') {
+      mSpec.textContent = spec;
+      document.getElementById('modalSpecRow').style.display = 'block';
+
+      mExp.textContent = exp;
+      document.getElementById('modalExpRow').style.display = 'block';
+
+      if (notes) {
+        mNotes.textContent = notes;
+        document.getElementById('modalNotesRow').style.display = 'block';
+      } else {
+        document.getElementById('modalNotesRow').style.display = 'none';
+      }
+    } else {
+      document.getElementById('modalSpecRow').style.display = 'none';
+      document.getElementById('modalExpRow').style.display = 'none';
+      document.getElementById('modalNotesRow').style.display = 'none';
+    }
+
+    if (role === 'doctor' && reg) {
+      mRegRow.style.display = 'block';
+      mReg.textContent = reg;
+    } else {
+      mRegRow.style.display = 'none';
+    }
+
+    mStatus.textContent = status;
+
+    if (photo && photo !== '#') {
+      mPhoto.innerHTML = '<img src="' + photo + '" alt="Profile photo">';
+    } else {
+      mPhoto.innerHTML = '<span>No photo</span>';
+    }
+
+    if (role === 'admin') {
+      modalEditLink.style.display = 'none';
+    } else if (editUrl) {
+      modalEditLink.href = editUrl;
+      modalEditLink.style.display = 'inline-flex';
+    } else {
+      modalEditLink.style.display = 'none';
+    }
+
+    if (deleteUrl) {
+      modalDeleteForm.action = deleteUrl;
+      modalDeleteForm.style.display = 'inline';
+    } else {
+      modalDeleteForm.style.display = 'none';
+    }
+
+    modal.style.display = 'block';
+  }
+
+  document.querySelectorAll('.staff-card').forEach(card => {
+    card.addEventListener('click', function (e) {
+      if (e.target.closest('a, button, form')) return;
+      openModalFromCard(this);
+    });
+  });
+
+  function closeModal() { modal.style.display = 'none'; }
+
+  if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+
+  window.addEventListener('click', function (e) {
+    if (e.target === modal) closeModal();
+  });
+
+  setActiveTab('adminsTab');
+});
+</script>
+{% endblock %}

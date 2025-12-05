@@ -1,0 +1,436 @@
+{% extends "core/base.html" %}
+
+{% block title %}Edit User — MediCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+.create-user-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 18px;
+}
+
+.create-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.create-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.create-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+.btn-outline-custom {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 2px solid #cbd5e1;
+  color: #64748b;
+  background: #fff;
+  transition: all 0.2s;
+}
+
+.btn-outline-custom:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.create-card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(15,23,42,0.08);
+  padding: 22px 22px 24px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 18px;
+  margin-top: 10px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.form-field label .required {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 9px 10px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
+}
+
+/* DISABLED FIELD STYLES */
+.form-field.disabled-field input,
+.form-field.disabled-field select {
+  background-color: #f8fafc !important;
+  color: #64748b !important;
+  cursor: not-allowed;
+  border-color: #cbd5e1;
+}
+
+.form-field.disabled-field input::placeholder {
+  color: #94a3b8;
+}
+
+.form-field.disabled-field label {
+  color: #94a3b8;
+}
+
+.disabled-display {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.section-title {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: #94a3b8;
+  margin: 18px 0 4px;
+}
+
+.photo-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.photo-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-primary-create {
+  background: #00bcd4;
+  color: #fff;
+  border-radius: 3px;
+  padding: 11px 32px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  box-shadow: 0 16px 30px rgba(0,188,212,0.35);
+  transition: all 0.2s;
+}
+
+.btn-primary-create:hover {
+  background: #00acc1;
+  box-shadow: 0 10px 22px rgba(0,188,212,0.25);
+}
+
+.actions-row {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.field-error {
+  font-size: 0.8rem;
+  color: #dc2626;
+  margin-top: 2px;
+}
+
+.info-note {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .create-user-wrapper {
+    padding: 18px 12px;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .create-card {
+    padding: 18px 16px 20px;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-user-wrapper">
+  <div class="create-header">
+    <div>
+      <h1>Edit User</h1>
+      <div class="create-subtitle">
+        Update staff member details. Role and password cannot be changed.
+      </div>
+    </div>
+    <a href="/staff-directory/" class="btn-outline-custom">← Staff Directory</a>
+  </div>
+
+  <div class="create-card">
+    <form method="post" enctype="multipart/form-data" id="editUserForm" novalidate>
+      {% csrf_token %}
+
+      <!-- ROLE (DISABLED - Display only) -->
+      <div class="form-field disabled-field">
+        <label>Role</label>
+        <div class="disabled-display">
+          {{ user_to_edit.get_role_display|default:user_to_edit.role|title }}
+        </div>
+      </div>
+
+      <div class="section-title">Account details</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="id_username">Username <span class="required">*</span></label>
+          <input type="text" name="username" id="id_username" required
+                 value="{{ user_to_edit.username }}"
+                 placeholder="Enter username">
+        </div>
+
+        <div class="form-field">
+          <label for="id_email">Email</label>
+          <input type="email" name="email" id="id_email"
+                 value="{{ user_to_edit.email|default:'' }}"
+                 placeholder="user@example.com">
+        </div>
+
+        <!-- PASSWORD (DISABLED - Display only) -->
+        <div class="form-field disabled-field">
+          <label>Password</label>
+          <div class="disabled-display">•••••••••••••</div>
+          <div class="info-note">Password cannot be changed here</div>
+        </div>
+
+        <div class="form-field">
+          <label for="id_first_name">First name <span class="required">*</span></label>
+          <input type="text" name="first_name" id="id_first_name" required
+                 value="{{ user_to_edit.first_name }}"
+                 placeholder="First name">
+        </div>
+
+        <div class="form-field">
+          <label for="id_last_name">Last name <span class="required">*</span></label>
+          <input type="text" name="last_name" id="id_last_name" required
+                 value="{{ user_to_edit.last_name }}"
+                 placeholder="Last name">
+        </div>
+
+        <div class="form-field">
+          <label>Profile photo</label>
+          <div class="photo-wrapper">
+            <div class="photo-preview" id="photoPreview">
+              {% if staff.profile_photo %}
+                <img src="{{ staff.profile_photo.url }}" alt="Current photo">
+              {% else %}
+                <span>No photo</span>
+              {% endif %}
+            </div>
+            <input type="file" name="profile_photo" id="id_profile_photo" accept="image/*">
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Contact details</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="id_phone">Phone <span class="required">*</span></label>
+          <input type="text" name="phone" id="id_phone" required
+                 value="{{ staff.phone|default:'' }}"
+                 placeholder="+91-XXXXXXXXXX">
+        </div>
+        <div class="form-field">
+          <label for="id_address">Address</label>
+          <textarea name="address" id="id_address" rows="2" placeholder="Address">{{ staff.address|default:'' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Doctor-only fields -->
+      {% if user_to_edit.role == 'doctor' %}
+      <div id="doctorExtraFields">
+        <div class="section-title">Doctor details</div>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="id_specialization">Specialization <span class="required">*</span></label>
+            <input type="text" name="specialization" id="id_specialization" required
+                   value="{{ staff.specialization|default:'' }}"
+                   placeholder="e.g. Cardiologist">
+          </div>
+
+          <div class="form-field">
+            <label for="id_registration_number">
+              Registration number <span class="required">*</span> (e.g. AAA/2024/12345)
+            </label>
+            <input type="text"
+                   name="registration_number"
+                   id="id_registration_number" required
+                   value="{{ staff.registration_number|default:'' }}"
+                   placeholder="AAA/YYYY/12345"
+                   maxlength="15">
+            <span class="field-error" id="regError" style="display:none;">
+              Invalid format. Use STATECODE/YYYY/12345 (e.g. AAA/2024/12345).
+            </span>
+          </div>
+
+          <div class="form-field">
+            <label for="id_experience_years">Experience (years) <span class="required">*</span></label>
+            <input type="number" min="0" name="experience_years" id="id_experience_years" required
+                   value="{{ staff.experience_years|default:0 }}"
+                   placeholder="e.g. 5">
+          </div>
+
+          <div class="form-field">
+            <label for="id_doctor_notes">Doctor notes</label>
+            <textarea name="doctor_notes" id="id_doctor_notes" rows="2"
+                      placeholder="Availability, timings, etc.">{{ staff.notes|default:'' }}</textarea>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="actions-row">
+        <button type="submit" class="btn-primary-create" id="submitBtn">Update User</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  /* Photo preview */
+  const fileInput = document.getElementById('id_profile_photo');
+  const previewBox = document.getElementById('photoPreview');
+
+  if (fileInput && previewBox) {
+    fileInput.addEventListener('change', function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        previewBox.innerHTML = '<img src="' + e.target.result + '" alt="Profile preview">';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* Registration number validation (only for doctors) */
+  const regInput = document.getElementById('id_registration_number');
+  const regError = document.getElementById('regError');
+  const form = document.getElementById('editUserForm');
+  const regPattern = /^[A-Z]{2,4}\/\d{4}\/\d{4,5}$/;
+
+  function validateReg() {
+    if (!regInput) return true;
+    const value = regInput.value.trim();
+    
+    if (regInput.hasAttribute('required') && !value) {
+      regError.textContent = 'Registration number is required for doctors.';
+      regError.style.display = 'block';
+      return false;
+    }
+    
+    if (!value) {
+      regError.style.display = 'none';
+      return true;
+    }
+    
+    if (value.length > 15) {
+      regError.textContent = 'Registration number too long (max 15 characters).';
+      regError.style.display = 'block';
+      return false;
+    }
+    
+    if (!regPattern.test(value)) {
+      regError.textContent = 'Invalid format. Use STATECODE/YYYY/12345 (e.g. AAA/2024/12345).';
+      regError.style.display = 'block';
+      return false;
+    }
+    
+    regError.style.display = 'none';
+    return true;
+  }
+
+  if (regInput) {
+    regInput.addEventListener('input', validateReg);
+    regInput.addEventListener('blur', validateReg);
+  }
+
+  /* Form submit validation */
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      if (!form.checkValidity()) {
+        e.preventDefault();
+        form.reportValidity();
+        return false;
+      }
+      
+      if (!validateReg()) {
+        e.preventDefault();
+        if (regInput) regInput.focus();
+        return false;
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,617 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}MediCare Pro{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'style.css' %}" />
+  {% block extra_css %}{% endblock %}
+
+  <style>
+    :root {
+      --brand: #00bcd4;
+      --brand-dark: #00acc1;
+      --brand-light: #80deea;
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --border: #b2ebf2;
+      --text: #0f172a;
+      --muted: #6b7280;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .navbar-card {
+      width: 100%;
+      background: #00bcd4;
+      box-shadow: var(--shadow);
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 1020;
+      border-bottom: 3px solid #0097a7;
+    }
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 0px;
+    }
+    .nav-top { 
+      padding: 14px 0 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+    .brand-section { display: flex; align-items: center; gap: 14px; }
+    .brand-logo {
+      width: 43px; height: 43px;
+      background: #fff; border-radius: 10px;
+      display: flex; align-items: center;
+      justify-content: center; font-weight: 800; font-size: 1.20rem;
+      color: #00bcd4; box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+    }
+    .brand-text { display: flex; flex-direction: column;}
+    .brand-main {
+      font-weight: 700; font-size: 1.45rem;
+      color: #fff; letter-spacing: -0.02em; line-height: 1.1;
+    }
+    .brand-sub {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.88); font-weight: 500; margin-top: 3px;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      gap: 12px;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .nav-menu a {
+      flex: 0 0 auto;
+      position: relative;
+      color: #fff;
+      background: transparent;
+      text-decoration: none;
+      padding: 11px 22px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 2px solid rgba(255,255,255,0.28);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .nav-menu a:hover,
+    .nav-menu a.active {
+      background: rgba(255,255,255,0.97);
+      color: #00bcd4;
+      border-color: rgba(255,255,255,0.97);
+      font-weight: 700;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+    }
+
+    .nav-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      flex: 0 0 auto;
+      position: relative;
+    }
+
+    .user-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .user-role {
+      background: #fff; color: #00acc1; padding: 5px 12px;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+    }
+    .user-name {
+      color: #fff; font-size: 0.92rem;
+      font-weight: 600;
+      flex: 0 0 auto;
+      min-width: 0;
+    }
+
+    .profile-dropdown-trigger {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #00bcd4;
+      background: rgba(255,255,255,0.95);
+      border: 2px solid rgba(255,255,255,0.35);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+    }
+    .profile-dropdown-trigger:hover {
+      background: #fff;
+      color: #00acc1;
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.22);
+      border-color: rgba(255,255,255,0.5);
+    }
+    .profile-dropdown-trigger.active {
+      background: #fff;
+      color: #00bcd4;
+      border-color: #00bcd4;
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(0,188,212,0.3);
+    }
+    .profile-icon {
+      font-size: 1.25rem;
+      transition: transform 0.3s ease;
+    }
+    .profile-dropdown-trigger.active .profile-icon {
+      transform: scale(0.95);
+    }
+
+    .profile-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 240px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+      border: 1px solid rgba(0,0,0,0.10);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-50%) translateY(-12px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1030;
+      margin-top: 16px;
+    }
+    .profile-dropdown-trigger.active + .profile-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 24px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+    }
+    .dropdown-item:hover {
+      background: #f8fafc;
+      color: var(--brand);
+      padding-left: 32px;
+    }
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+    .dropdown-item i {
+      width: 20px;
+      font-size: 1.1rem;
+      opacity: 0.75;
+    }
+    .dropdown-item.logout-item:hover {
+      background: #fef2f2;
+      color: var(--danger);
+    }
+
+    main {
+      flex: 1; padding: 10px 24px 24px; max-width: 1400px; margin: 0 auto; width: 100%;
+    }
+
+    .breadcrumb-nav {
+      width: 100%;
+      background: #f7fafc;
+      color: #64748b;
+      font-size: 1.30rem;
+      padding: 8px 24px;
+      margin-top: 160px;
+    }
+    .breadcrumb-nav a {
+      color: #00bcd4;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .breadcrumb-nav a:hover {
+      color: #00acc1;
+      text-decoration: underline;
+    }
+    .breadcrumb-separator {
+      color: #cbd5e1;
+      margin: 0 8px;
+      font-weight: 400;
+    }
+    .breadcrumb-current {
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    footer {
+      padding: 16px 0;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-top: 1px solid #e5e7eb;
+      background-color: #fff;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+    }
+
+    /* ========== Responsive Design ========== */
+    @media (max-width: 768px) {
+      .nav-container { padding: 0 3px; }
+      .nav-top { padding: 10px 0 8px; }
+      .brand-logo { width: 38px; height: 38px; font-size: 1.1rem; }
+      .brand-main { font-size: 1.2rem; }
+      .brand-sub { font-size: 0.72rem; margin-top: 2px; }
+      .nav-bottom { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 0; }
+      .nav-menu { flex-wrap: wrap; gap: 4px; }
+      .nav-menu a { padding: 9px 16px; font-size: 0.85rem; border-width: 1.8px; }
+      .nav-right { align-items: center; width: 100%; justify-content: space-between; gap: 1px; }
+      .user-display { padding: 6px 12px; }
+      .user-role { font-size: 0.75rem; padding: 4px 10px; }
+      .user-name { font-size: 0.82rem; }
+      .profile-dropdown-trigger { width: 44px; height: 44px; }
+      .profile-icon { font-size: 1.15rem; }
+      .profile-dropdown { min-width: 220px; margin-top: 14px; }
+      main { padding: 10px 16px 20px; }
+      .breadcrumb-nav { padding: 6px 12px; font-size: 0.85rem; margin-top: 210px; }
+    }
+
+    @media (max-width: 480px) {
+      .nav-container { padding: 0 3px; }
+      .nav-top { padding: 10px 0 8px; }
+      .brand-logo { width: 34px; height: 34px; font-size: 1rem; }
+      .brand-main { font-size: 1.1rem; }
+      .brand-sub { font-size: 0.68rem; }
+      .nav-bottom { padding: 10px 0; gap: 4px; }
+      .nav-menu { gap: 3px; }
+      .nav-menu a { font-size: 0.8rem; padding: 8px 12px; }
+      .nav-right { gap: 0; }
+      .user-display { gap: 4px; padding: 4px 8px; margin-right: 0; }
+      .user-role { font-size: 0.7rem; padding: 3px 6px; }
+      .user-name { font-size: 0.76rem; }
+      .profile-dropdown-trigger { width: 40px; height: 40px; margin-left: 0; }
+      main { padding: 10px 12px 16px; }
+      .breadcrumb-nav { padding: 5px 8px; font-size: 0.8rem; margin-top: 200px; }
+    }
+
+    /* FIXED Toast styles */
+    .toast-container {
+      position: fixed !important;
+      top: 20px !important;
+      right: 20px !important;
+      z-index: 11000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 12px !important;
+      max-width: 400px !important;
+    }
+    .toast {
+      background: #10b981;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-weight: 600;
+      min-width: 250px;
+      cursor: pointer;
+      opacity: 1;
+      transform: translateX(0);
+      transition: all 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar-card" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <div class="nav-top">
+        <div class="brand-section">
+          <div class="brand-logo">
+          <img src="{% static 'logo.png' %}" alt="MediCare Pro Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;">
+          </div>
+          <div class="brand-text">
+            <span class="brand-main">MediCare Pro</span>
+            <span class="brand-sub">Healthcare Management</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-bottom">
+        <div class="nav-menu">
+          {% if user.is_authenticated %}
+            {% if user.role == 'admin' %}
+              <a href="{% url 'admin_dashboard' %}" title="Dashboard"><i class="fas fa-home"></i></a>
+              <a href="{% url 'patient_list' %}">Patients</a>
+              <a href="{% url 'appointment_list' %}">Appointments</a>
+              <a href="{% url 'staff_directory' %}">Staff</a>
+              <a href="{% url 'calendar_page' %}">Calendar</a>
+            {% elif user.role == 'doctor' %}
+              <a href="{% url 'doctor_dashboard' %}" title="Dashboard"><i class="fas fa-home"></i></a>
+              <a href="{% url 'appointment_list' %}">Appointments</a>
+              <a href="{% url 'patient_list' %}">Patients</a>
+              <a href="{% url 'calendar_page' %}">Calendar</a>
+            {% elif user.role == 'receptionist' %}
+              <a href="{% url 'reception_dashboard' %}" title="Dashboard"><i class="fas fa-home"></i></a>
+              <a href="{% url 'patient_requests_list' %}">Patient Requests</a>
+              <a href="{% url 'patient_list' %}">Patients</a>
+              <a href="{% url 'appointment_list' %}">Appointments</a>
+              <a href="{% url 'staff_directory' %}">Staff</a>
+              <a href="{% url 'calendar_page' %}">Calendar</a>
+            {% elif user.role == 'patient' %}
+              <a href="{% url 'patient_dashboard' %}" title="Dashboard"><i class="fas fa-home"></i></a>
+              <a href="{% url 'appointment_list' %}">Appointments</a>
+              <a href="{% url 'calendar_page' %}">Calendar</a>
+            {% endif %}
+          {% else %}
+            <a href="{% url 'landing_page' %}">Home</a>
+            <a href="{% url 'login' %}">Login</a>
+          {% endif %}
+        </div>
+
+        {% if user.is_authenticated %}
+        <div class="nav-right">
+          <div class="user-display">
+            <span class="user-role">{{ user.role|default:"User"|capfirst }}</span>
+            <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+          </div>
+          <div class="profile-dropdown-trigger" id="profileDropdownTrigger">
+            <i class="fas fa-user profile-icon"></i>
+          </div>
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="{% url 'account-settings' %}" class="dropdown-item">
+              <i class="fas fa-user-edit"></i>
+              Account Settings
+            </a>
+            <form method="post" action="{% url 'logout' %}" style="display: contents;">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item logout-item">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <div class="breadcrumb-nav">
+    {% if request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'doctor_dashboard' or request.resolver_match.url_name == 'reception_dashboard' or request.resolver_match.url_name == 'patient_dashboard' %}
+      <span class="breadcrumb-current">Dashboard</span>
+    {% else %}
+      {% if user.is_authenticated %}
+        <a href="{% if user.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role == 'doctor' %}{% url 'doctor_dashboard' %}{% elif user.role == 'receptionist' %}{% url 'reception_dashboard' %}{% else %}{% url 'patient_dashboard' %}{% endif %}">Dashboard</a>
+      {% else %}
+        <a href="{% url 'landing_page' %}">Home</a>
+      {% endif %}
+      
+      {% if request.resolver_match.url_name == 'create_user' %}
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Add User</span>
+      {% elif request.resolver_match.url_name == 'patient_requests_list' %}
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Patient Requests</span>
+      {% elif request.resolver_match.url_name == 'patient_list' %}
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Patients</span>
+      {% elif request.resolver_match.url_name == 'patient_detail' %}
+        <span class="breadcrumb-separator">/</span>
+        <a href="{% url 'patient_list' %}">Patients</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Patient Details</span>
+      {% elif request.resolver_match.url_name == 'patient_add' %}
+        <span class="breadcrumb-separator">/</span>
+        <a href="{% url 'patient_list' %}">Patients</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Add Patient</span>
+      {% elif request.resolver_match.url_name == 'patient_medical_records' %}
+        <span class="breadcrumb-separator">/</span>
+        <a href="{% url 'patient_list' %}">Patients</a>
+        <span class="breadcrumb-separator">/</span>
+        <a href="{% url 'patient_detail' patient.id %}">Patient Details</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Medical Records</span>
+      {% elif request.resolver_match.url_name == 'staff_directory' %}
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Staff Directory</span>
+      {% elif request.resolver_match.url_name == 'staff_edit' %}
+        <span class="breadcrumb-separator">/</span>
+        <a href="{% url 'staff_directory' %}">Staff</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Edit Staff</span>
+      {% elif request.resolver_match.url_name == 'appointment_list' %}
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Appointments</span>
+      {% elif request.resolver_match.url_name == 'appointment_history' %}
+        <span class="breadcrumb-separator">/</span>
+        <a href="{% url 'appointment_list' %}">Appointments</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">History</span>
+      {% elif request.resolver_match.url_name == 'appointment_add' or request.resolver_match.url_name == 'appointment_create' %}
+        <span class="breadcrumb-separator">/</span>
+        <a href="{% url 'appointment_list' %}">Appointments</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">New Appointment</span>
+      {% elif request.resolver_match.url_name == 'appointment_detail' %}
+        <span class="breadcrumb-separator">/</span>
+        <a href="{% url 'appointment_list' %}">Appointments</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Appointment Details</span>
+      {% elif request.resolver_match.url_name == 'calendar_page' %}
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Calendar</span>
+      {% elif request.resolver_match.url_name == 'account-settings' %}
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Account Settings</span>
+      {% elif request.resolver_match.url_name == 'landing_page' %}
+        <span class="breadcrumb-current">Welcome</span>
+      {% elif request.resolver_match.url_name == 'login' %}
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Login</span>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    &copy; 2025 MediCare Pro. All Rights Reserved.
+  </footer>
+
+  <!-- 🔥 FIXED GLOBAL TOAST SYSTEM - ONE TIME ONLY -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 🔥 PERFECT TOAST SYSTEM - NO DUPLICATES, NO CONSOLE.LOG
+    {% if messages %}
+      // Create toast container once
+      let toastContainer = document.getElementById('toast-container');
+      if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        Object.assign(toastContainer.style, {
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: '11000',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          maxWidth: '400px'
+        });
+        document.body.appendChild(toastContainer);
+      }
+
+      // Show each message as toast
+      {% for message in messages %}
+        setTimeout(() => {
+          const toast = document.createElement('div');
+          toast.className = 'toast';
+          const type = "{{ message.tags|default:'info' }}";
+          
+          // Toast colors
+          const colors = {
+            'success': '#10b981',
+            'error': '#ef4444',
+            'warning': '#f59e0b',
+            'info': '#3b82f6',
+            'danger': '#ef4444'
+          };
+          
+          Object.assign(toast.style, {
+            background: colors[type] || '#3b82f6',
+            color: 'white',
+            padding: '12px 20px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            fontWeight: '600',
+            minWidth: '250px',
+            maxWidth: '400px',
+            cursor: 'pointer',
+            opacity: '1',
+            transform: 'translateX(0)',
+            transition: 'all 0.4s ease'
+          });
+          
+          toast.textContent = "{{ message|escapejs }}";
+          
+          // Click to dismiss
+          toast.onclick = () => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 400);
+          };
+          
+          // Auto dismiss after 5s
+          setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 400);
+          }, 5000);
+          
+          toastContainer.appendChild(toast);
+        }, {{ forloop.counter0 }} * 200);
+      {% endfor %}
+    {% endif %}
+
+    // Profile dropdown
+    const profileDropdownTrigger = document.getElementById('profileDropdownTrigger');
+    const profileDropdown = document.getElementById('profileDropdown');
+
+    if (profileDropdownTrigger && profileDropdown) {
+      profileDropdownTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isActive = this.classList.contains('active');
+        document.querySelectorAll('.profile-dropdown-trigger').forEach(el => {
+          el.classList.remove('active');
+        });
+        if (!isActive) {
+          this.classList.add('active');
+        }
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!profileDropdownTrigger.contains(e.target)) {
+          profileDropdownTrigger.classList.remove('active');
+        }
+      });
+
+      profileDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', function() {
+          profileDropdownTrigger.classList.remove('active');
+        });
+      });
+    }
+  });
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

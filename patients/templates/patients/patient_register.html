@@ -1,0 +1,356 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Registration - MediCare Pro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .registration-container {
+      background: #fafbfc; /* Light white shade */
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      max-width: 850px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .registration-header {
+      background: linear-gradient(135deg, #00bcd4 0%, #00acc1 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    .registration-header h1 { font-size: 32px; font-weight: 700; margin-bottom: 10px; }
+    .registration-header p { font-size: 16px; opacity: 0.95; }
+    .registration-form { 
+      padding: 40px; 
+      background: #ffffff; /* Pure white form background */
+    }
+    .form-section { margin-bottom: 30px; }
+    .form-section-title {
+      font-size: 20px; font-weight: 700; color: #0f172a;
+      margin-bottom: 20px; padding-bottom: 10px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { 
+      display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px; 
+    }
+    .form-group label .required { color: #ef4444; margin-left: 4px; }
+    .help-text {
+      font-size: 12px; color: #6b7280; margin-top: 4px; font-style: italic;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 12px 16px; border: 2px solid #e9ecef;
+      border-radius: 10px; font-size: 15px; transition: all 0.3s; font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none; border-color: #00bcd4; box-shadow: 0 0 0 3px rgba(0,188,212,0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    
+    /* Password eye styling */
+    .pw-wrap { position: relative; }
+    #togglePassword, #toggleConfirmPassword {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      cursor: pointer; opacity: 0.7; width: 20px; height: 20px;
+    }
+    #togglePassword:hover, #toggleConfirmPassword:hover { opacity: 1; }
+
+    /* Photo upload preview */
+    .photo-upload-group {
+      display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start;
+    }
+    .photo-preview {
+      width: 100px; height: 100px; border-radius: 12px; 
+      background: #f8fafc; border: 2px dashed #cbd5e1; 
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; cursor: pointer; transition: all 0.3s;
+    }
+    .photo-preview:hover { border-color: #00bcd4; background: #f1f5f9; }
+    .photo-preview img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 10px;
+    }
+    .photo-preview-placeholder {
+      color: #94a3b8; font-size: 11px; text-align: center; font-weight: 500;
+    }
+    .file-input-wrapper { position: relative; }
+    .file-input-wrapper input[type="file"] {
+      opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer;
+    }
+    .file-input-label {
+      display: block; padding: 10px 12px; background: #f1f5f9; 
+      border: 2px dashed #cbd5e1; border-radius: 10px; text-align: center;
+      cursor: pointer; transition: all 0.3s; font-size: 14px; color: #475569;
+    }
+    .file-input-label:hover {
+      background: #e2e8f0; border-color: #00bcd4;
+    }
+
+    .error-message { color: #ef4444; font-size: 13px; margin-top: 6px; display: block; }
+    .success-message {
+      background: #d1fae5; color: #065f46; padding: 16px; border-radius: 10px;
+      margin-bottom: 20px; border-left: 4px solid #10b981;
+    }
+    .form-actions { display: flex; gap: 16px; margin-top: 30px; flex-wrap: wrap; }
+    .btn { 
+      padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; 
+      cursor: pointer; transition: all 0.3s; border: none; text-decoration: none; 
+      display: inline-block; text-align: center; 
+    }
+    .btn-primary { background: #00bcd4; color: white; flex: 1; min-width: 200px; }
+    .btn-primary:hover { background: #00acc1; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,188,212,0.3); }
+    .btn-secondary { background: #e9ecef; color: #333; flex: 1; min-width: 200px; }
+    .btn-secondary:hover { background: #dee2e6; }
+    .login-link { text-align: center; margin-top: 20px; color: #666; }
+    .login-link a { color: #00bcd4; text-decoration: none; font-weight: 600; }
+    .login-link a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .registration-header { padding: 30px 20px; }
+      .registration-header h1 { font-size: 26px; }
+      .registration-form { padding: 30px 20px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .photo-upload-group { grid-template-columns: 1fr; }
+      .form-actions { flex-direction: column; }
+      .btn { width: 100%; min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="registration-container">
+    <div class="registration-header">
+      <h1>🏥 Patient Registration</h1>
+      <p>Fill in the patient information below</p>
+    </div>
+
+    <div class="registration-form">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="success-message">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Personal Information -->
+        <div class="form-section">
+          <h2 class="form-section-title">Personal Information</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>First Name <span class="required">*</span></label>
+              <input type="text" name="first_name" required>
+            </div>
+            <div class="form-group">
+              <label>Last Name <span class="required">*</span></label>
+              <input type="text" name="last_name" required>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Date of Birth <span class="required">*</span></label>
+              <input type="date" name="date_of_birth" id="dobField" required>
+            </div>
+            <div class="form-group">
+              <label>Gender <span class="required">*</span></label>
+              <select name="gender" required>
+                <option value="">---------</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="form-section">
+          <h2 class="form-section-title">Contact Information</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Phone Number <span class="required">*</span></label>
+              <input type="tel" name="phone" required pattern="^(\+91\s?[0-9]{10}|[0-9]{10})$" placeholder="+91 1234567890">
+              <div class="help-text">Format: +91 1234567890 or 1234567890</div>
+            </div>
+            <div class="form-group">
+              <label>Email Address <span class="required">*</span></label>
+              <input type="email" name="email" required>
+              <div class="help-text">We'll never share your email with anyone</div>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Emergency Contact</label>
+              <input type="tel" name="emergency_contact" placeholder="Another phone for emergencies">
+              <div class="help-text">Another phone for emergencies</div>
+            </div>
+            <div class="form-group">
+              <label>Blood Group</label>
+              <select name="blood_group">
+                <option value="">---------</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Address <span class="required">*</span></label>
+            <textarea name="address" required placeholder="Full address with street, city, and zip"></textarea>
+          </div>
+        </div>
+
+        <!-- Medical History -->
+        <div class="form-section">
+          <h2 class="form-section-title">Medical History</h2>
+          <div class="form-group">
+            <label>Medical History</label>
+            <textarea name="medical_history" placeholder="Allergies, chronic conditions, past surgeries, etc."></textarea>
+            <div class="help-text">Allergies, chronic conditions, past surgeries, etc.</div>
+          </div>
+        </div>
+
+        <!-- Account Information -->
+        <div class="form-section">
+          <h2 class="form-section-title">Account Details</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Username <span class="required">*</span></label>
+              <input type="text" name="username" required>
+            </div>
+            <div class="form-group">
+              <label>Password <span class="required">*</span></label>
+              <div class="pw-wrap">
+                <input type="password" name="password" id="id_password" required>
+                <svg id="togglePassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Confirm Password <span class="required">*</span></label>
+            <div class="pw-wrap">
+              <input type="password" name="password_confirm" id="id_confirm_password" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo Upload with Preview -->
+        <div class="form-section">
+          <h2 class="form-section-title">Photo</h2>
+          <div class="form-group">
+            <label>Photo (optional)</label>
+            <div class="photo-upload-group">
+              <div class="photo-preview" id="photoPreview">
+                <div class="photo-preview-placeholder">
+                  No photo<br>selected
+                </div>
+              </div>
+              <div class="file-input-wrapper">
+                <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png">
+                <label for="photoInput" class="file-input-label">
+                  Choose Photo
+                </label>
+              </div>
+            </div>
+            <div class="help-text">Allowed: JPG or PNG, up to 2MB.</div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Submit Request</button>
+          <a href="{% url 'login' %}" class="btn btn-secondary">Back to Login</a>
+        </div>
+
+        <div class="login-link">
+          Already have an account? <a href="{% url 'login' %}">Login here</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Past date validation for DOB
+    document.addEventListener('DOMContentLoaded', function() {
+      const dobField = document.getElementById('dobField');
+      if (dobField) {
+        const today = new Date().toISOString().split('T')[0];
+        dobField.max = today;
+      }
+
+      // Photo preview
+      const photoInput = document.getElementById('photoInput');
+      const photoPreview = document.getElementById('photoPreview');
+      
+      if (photoInput && photoPreview) {
+        photoInput.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              photoPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+          } else {
+            photoPreview.innerHTML = '<div class="photo-preview-placeholder">No photo<br>selected</div>';
+          }
+        });
+        
+        // Click preview to trigger file input
+        photoPreview.addEventListener('click', function() {
+          photoInput.click();
+        });
+      }
+
+      // Password eye toggle
+      const togglePassword = document.getElementById('togglePassword');
+      const passwordField = document.getElementById('id_password');
+      if (togglePassword && passwordField) {
+        let showing = false;
+        togglePassword.addEventListener('click', function() {
+          showing = !showing;
+          passwordField.type = showing ? 'text' : 'password';
+          togglePassword.innerHTML = showing
+            ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+            : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+        });
+      }
+
+      // Confirm password eye toggle
+      const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+      const confirmPasswordField = document.getElementById('id_confirm_password');
+      if (toggleConfirmPassword && confirmPasswordField) {
+        let showingConfirm = false;
+        toggleConfirmPassword.addEventListener('click', function() {
+          showingConfirm = !showingConfirm;
+          confirmPasswordField.type = showingConfirm ? 'text' : 'password';
+          toggleConfirmPassword.innerHTML = showingConfirm
+            ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+            : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+        });
+      }
+    });
+  </script>
+</body>
+</html>
