@@ -477,10 +477,10 @@
         <a href="{% url 'admin_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
       {% elif user.role == 'doctor' %}
         <a href="{% url 'doctor_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
-      {% elif user.role == 'reception' %}
+      {% elif user.role == 'receptionist' %}
         <a href="{% url 'reception_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
       {% elif user.role == 'patient' %}
-        <a href="{% url 'patient_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+        <a href="{% url 'dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
       {% else %}
         <a href="{% url 'dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
       {% endif %}
@@ -631,7 +631,7 @@
         <div style="font-size:1.1rem; font-weight:600; color:#64748b; margin-bottom:8px;">
           No upcoming appointments
         </div>
-        {% if user.role == 'admin' or user.role == 'doctor' %}
+        {% if user.role == 'admin' or user.role == 'receptionist' %}
           <a href="{% url 'appointment_add' %}" class="btn-custom btn-primary-custom" style="margin-top:12px;">
             Create First Appointment
           </a>

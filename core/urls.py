@@ -13,5 +13,6 @@ urlpatterns = [
     path('account/settings/', views.account_settings, name='account-settings'),
     path('password/manage/', views.password_manage, name='password-manage'),
     path('contact-queries/', views.contact_queries_list, name='contact_queries'),
+    path('api/check-username/', views.check_username_availability, name='check_username'),
     
 ]

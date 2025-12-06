@@ -377,13 +377,12 @@
               <a href="{% url 'calendar_page' %}">Calendar</a>
             {% elif user.role == 'receptionist' %}
               <a href="{% url 'reception_dashboard' %}" title="Dashboard"><i class="fas fa-home"></i></a>
-              <a href="{% url 'patient_requests_list' %}">Patient Requests</a>
               <a href="{% url 'patient_list' %}">Patients</a>
               <a href="{% url 'appointment_list' %}">Appointments</a>
               <a href="{% url 'staff_directory' %}">Staff</a>
               <a href="{% url 'calendar_page' %}">Calendar</a>
             {% elif user.role == 'patient' %}
-              <a href="{% url 'patient_dashboard' %}" title="Dashboard"><i class="fas fa-home"></i></a>
+              <a href="{% url 'dashboard' %}" title="Dashboard"><i class="fas fa-home"></i></a>
               <a href="{% url 'appointment_list' %}">Appointments</a>
               <a href="{% url 'calendar_page' %}">Calendar</a>
             {% endif %}
@@ -422,11 +421,11 @@
   </nav>
 
   <div class="breadcrumb-nav">
-    {% if request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'doctor_dashboard' or request.resolver_match.url_name == 'reception_dashboard' or request.resolver_match.url_name == 'patient_dashboard' %}
+    {% if request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'doctor_dashboard' or request.resolver_match.url_name == 'reception_dashboard' or request.resolver_match.url_name == 'dashboard' %}
       <span class="breadcrumb-current">Dashboard</span>
     {% else %}
       {% if user.is_authenticated %}
-        <a href="{% if user.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role == 'doctor' %}{% url 'doctor_dashboard' %}{% elif user.role == 'receptionist' %}{% url 'reception_dashboard' %}{% else %}{% url 'patient_dashboard' %}{% endif %}">Dashboard</a>
+        <a href="{% if user.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role == 'doctor' %}{% url 'doctor_dashboard' %}{% elif user.role == 'receptionist' %}{% url 'reception_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}">Dashboard</a>
       {% else %}
         <a href="{% url 'landing_page' %}">Home</a>
       {% endif %}

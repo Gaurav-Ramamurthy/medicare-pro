@@ -574,7 +574,13 @@
       <h1>Staff Directory</h1>
       <div class="page-subtitle">Browse and manage admins, doctors and receptionists</div>
     </div>
-    <a href="{% url 'admin_dashboard' %}" class="btn-outline-custom">← Dashboard</a>
+      {% if user.is_superuser or user.role == 'admin' %}
+        <a href="{% url 'admin_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+      {% elif user.role == 'receptionist' %}
+        <a href="{% url 'reception_dashboard' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+      {% else %}
+        <a href="{% url 'home' %}" class="btn-custom btn-outline-custom">← Dashboard</a>
+      {% endif %}
   </div>
 
   <!-- Tabs -->
@@ -846,7 +852,9 @@
       </div>
     </div>
     <div class="modal-footer">
-      <a id="modalEditLink" href="#" class="modal-btn modal-btn-edit">Edit</a>
+        {% if user.is_superuser or user.role == 'admin' or user.role == 'receptionist' %}
+          <a id="modalEditLink" href="#" class="modal-btn modal-btn-edit">Edit</a>
+        {% endif %}
       <form id="modalDeleteForm" method="post" action="" style="display:inline;">
         {% csrf_token %}
         <button type="submit" class="modal-btn modal-btn-delete"
@@ -1148,12 +1156,16 @@ document.addEventListener('DOMContentLoaded', function () {
       modalEditLink.style.display = 'none';
     }
 
-    if (deleteUrl) {
-      modalDeleteForm.action = deleteUrl;
-      modalDeleteForm.style.display = 'inline';
-    } else {
-      modalDeleteForm.style.display = 'none';
-    }
+    {% if user.is_superuser or user.role == 'admin' %}
+      if (deleteUrl) {
+        modalDeleteForm.action = deleteUrl;
+        modalDeleteForm.style.display = 'inline';
+      } else {
+        modalDeleteForm.style.display = 'none';
+      }
+    {% else %}
+      modalDeleteForm.style.display = 'none';  // Receptionist never sees delete
+    {% endif %}
 
     modal.style.display = 'block';
   }

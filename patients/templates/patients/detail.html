@@ -3,9 +3,7 @@
 {% load humanize %}
 {% load static %}
 
-
 {% block title %}{{ patient.first_name }} {{ patient.last_name }} — Patient Profile{% endblock %}
-
 
 {% block extra_css %}
 <style>
@@ -391,15 +389,7 @@ h5 {
   display: block;
 }
 
-/* Appointments slide container */
-#tabAppointments {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-}
-/* ===== APPOINTMENTS TABLE STYLE (inside card) ===== */
-
+/* Appointments table */
 #tabAppointments {
   background: #ffffff;
   padding: 12px 4px 4px;
@@ -407,7 +397,6 @@ h5 {
   margin-bottom: 16px;
 }
 
-/* Wrapper around the table */
 .appointments-table-card {
   background: #ffffff;
   border-radius: 18px;
@@ -416,14 +405,12 @@ h5 {
   overflow: hidden;
 }
 
-/* Table element */
 .appointments-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
 
-/* Header row */
 .appointments-table thead tr {
   background: #f4f7fb;
 }
@@ -439,7 +426,6 @@ h5 {
   border-bottom: 1px solid #e5edf7;
 }
 
-/* Body rows */
 .appointments-table td {
   padding: 14px 18px;
   border-bottom: 1px solid #edf2f7;
@@ -455,13 +441,11 @@ h5 {
   background: #f5fbff;
 }
 
-/* Number column */
 .appt-col-index {
   width: 40px;
   color: #9ca3af;
 }
 
-/* Date + time stacked */
 .appt-date {
   font-weight: 600;
   color: #111827;
@@ -471,12 +455,10 @@ h5 {
   color: #9ca3af;
 }
 
-/* Doctor */
 .appt-doctor {
   color: #111827;
 }
 
-/* Status pill */
 .appt-status-pill {
   display: inline-flex;
   align-items: center;
@@ -501,12 +483,6 @@ h5 {
   color: #b91c1c;
 }
 
-/* Actions */
-.appt-actions a {
-  font-size: 0.88rem;
-}
-
-/* Mobile: stack columns or hide index */
 @media (max-width: 640px) {
   .appointments-table th.appt-col-index,
   .appointments-table td.appt-col-index {
@@ -518,39 +494,7 @@ h5 {
   }
 }
 
-/* Appointment cards */
-.appointment-card {
-  border-radius: 12px;
-  border: 1px solid #e2edf7;
-  border-left: 5px solid #0284c7;
-  padding: 12px 14px;
-  background: #ffffff;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.1);
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  transition: all 0.2s;
-}
-.appointment-card:hover {
-  box-shadow: 0 8px 16px rgba(2, 132, 199, 0.2);
-  transform: translateX(4px);
-}
-.appointment-main {
-  font-size: 0.9rem;
-  color: #111827;
-}
-.appointment-meta {
-  font-size: 0.8rem;
-  color: #6b7280;
-}
-
-/* ========================================
-   RECORDS & PRESCRIPTIONS GRID LAYOUT
-   (like medical records page)
-   ======================================== */
-
-/* Records slide container */
+/* Records slide */
 #tabRecords {
   background: #ffffff;
   padding: 12px 4px 4px;
@@ -558,7 +502,7 @@ h5 {
   margin-bottom: 16px;
 }
 
-/* Prescriptions slide container */
+/* Prescriptions slide */
 #tabPrescriptions {
   background: #ffffff;
   padding: 12px 4px 4px;
@@ -676,7 +620,6 @@ h5 {
   margin-top: auto;
 }
 
-/* Small card links */
 .medhub-card-link {
   color: #00a0c4;
   font-weight: 600;
@@ -737,7 +680,6 @@ h5 {
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="container">
 
@@ -783,7 +725,7 @@ h5 {
           <h4 style="margin:0;">Patient Details</h4>
           {% if user.is_authenticated and user.patient and user.patient.pk == patient.pk %}
             {# Patient viewing own profile - hide edit #}
-          {% else %}
+          {% elif user.is_staff or user.role == 'receptionist' %}
             <a href="{% url 'patient_edit' patient.pk %}" class="btn-custom btn-primary-custom" style="padding:8px 16px;font-size:0.9rem;">
               Edit
             </a>
@@ -925,7 +867,6 @@ h5 {
                 <th>Date &amp; Time</th>
                 <th>Doctor</th>
                 <th>Status</th>
-                <th style="text-align:right;">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -964,11 +905,6 @@ h5 {
                     </span>
                   {% endwith %}
                 </td>
-                <td class="appt-actions" style="text-align:right;">
-                  {% if not user.is_authenticated and user.patient and user.patient.pk == patient.pk %}
-                    <a href="{% url 'appointment_edit' a.pk %}" class="btn-link">Edit</a>
-                  {% endif %}
-                </td>
               </tr>
               {% endfor %}
             </tbody>
@@ -978,7 +914,6 @@ h5 {
         <div class="notice" style="margin-top:8px;">No appointments found for this patient.</div>
       {% endif %}
     </div>
-
 
     <!-- 2) Records slide -->
     <div id="tabRecords" class="medhub-tab-panel">
@@ -1093,12 +1028,22 @@ h5 {
 </div>
 {% endblock %}
 
-
 {% block extra_js %}
 <script>
 function smartBack() {
   const referrer = document.referrer;
+  
+  // ✅ Get user info from data attributes (safe for Django templates)
+  const userAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+  const userHasPatient = {{ user.patient.pk|default_if_none:"null" }} !== null;
+  
+  // ✅ PRIORITY 1: Patient users → Always Dashboard
+  if (userAuthenticated && userHasPatient) {
+    window.location.href = "{% url 'dashboard' %}";
+    return;
+  }
 
+  // ✅ PRIORITY 2: Staff - Smart referrer-based redirect
   if (referrer.includes('/patients/') || referrer.includes('patient_list')) {
     window.location.href = "{% url 'patient_list' %}";
   } else if (referrer.includes('/appointments/') || referrer.includes('appointment')) {
@@ -1111,11 +1056,19 @@ function smartBack() {
 document.addEventListener('DOMContentLoaded', function() {
   const referrer = document.referrer;
   const backBtn = document.getElementById('smart-back-btn');
+  
+  const userAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+  const userHasPatient = {{ user.patient.pk|default_if_none:"null" }} !== null;
 
   if (backBtn) {
-    if (referrer.includes('/patients/')) {
-      backBtn.textContent = '← Back';
+    if (userAuthenticated && userHasPatient) {
+      backBtn.textContent = '← Dashboard';
+      backBtn.title = 'Return to your dashboard';
+    } else if (referrer.includes('/patients/')) {
+      backBtn.textContent = '← Patients';
     } else if (referrer.includes('/appointments/')) {
+      backBtn.textContent = '← Appointments';
+    } else {
       backBtn.textContent = '← Back';
     }
   }

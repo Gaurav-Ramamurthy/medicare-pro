@@ -3,6 +3,21 @@
 {% load humanize %}
 
 {% block title %}Dashboard | MediCare Pro{% endblock %}
+{% block extra_css %}
+<style>
+.btn-cyan-outline {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 2px solid #06b6d4;
+  color: #06b6d4;
+  background: #ffffff;
+  font-weight: 600;
+}
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="patient-dashboard-wrapper">
@@ -13,7 +28,23 @@
         Your health overview • {{ now|localtime|date:"m/d/Y" }}
       </div>
     </div>
-    <a href="{% url 'appointment_add' %}" class="cyan-btn dash-hero-btn">Book Appointment</a>
+
+    {# Right side: profile/patients button #}
+    <div class="pd-header-right" style="display:flex;align-items:center;gap:12px;">
+      {% if user.is_authenticated and user.role == 'patient' and user.patient %}
+        <a href="{% url 'patient_detail' user.patient.pk %}"
+           class="btn-cyan-outline"
+           style="display:inline-flex;align-items:center;justify-content:center;">
+          Medical Details
+        </a>
+      {% else %}
+        <a href="{% url 'patient_list' %}"
+           class="btn-cyan-outline"
+           style="display:inline-flex;align-items:center;justify-content:center;">
+          Patients
+        </a>
+      {% endif %}
+    </div>
   </div>
 
   <div class="patient-dashboard-cards">
@@ -63,6 +94,7 @@
         </div>
       {% endif %}
     </div>
+
     <div class="appt-card">
       <div class="appt-card-header">
         <span>Recent Appointments</span>

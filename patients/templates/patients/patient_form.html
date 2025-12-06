@@ -49,6 +49,12 @@ textarea.form-control { min-height: 100px; resize: vertical; }
 .form-text { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
 .text-danger { color: #dc2626; font-size: 0.85rem; margin-top: 4px; font-weight: 500; }
 
+/* Username status */
+.username-status { font-size: 0.85rem; margin-top: 4px; }
+.username-available { color: #10b981; }
+.username-taken { color: #ef4444; }
+.username-checking { color: #64748b; }
+
 .photo-section-divided {
   margin-top: 24px;
   margin-bottom: 14px;
@@ -65,9 +71,7 @@ textarea.form-control { min-height: 100px; resize: vertical; }
   height: 140px; width: 130px; object-fit: cover; border-radius: 9px;
   border: 3px solid #e2e8f0; background: #fff;
 }
-.photo-preview-hidden {
-  display: none;
-}
+.photo-preview-hidden { display: none; }
 #photo-filename-debug { color: #64748b; font-size: 0.92rem; margin-top: 5px; }
 
 .form-actions {
@@ -128,11 +132,11 @@ textarea.form-control { min-height: 100px; resize: vertical; }
   .photo-section-divided { flex-direction: column; align-items: flex-start; gap: 14px;}
   .photo-col-upload { max-width: 280px; }
 }
-.patient-form input[type="file"] {
-  width: 400px;  
-  max-width: 100%;
-}
-
+.patient-form input[type="file"] { width: 400px; max-width: 100%; }
+.username-status { font-size: 0.85rem; margin-top: 4px; }
+.username-available { color: #10b981; font-weight: 600; }
+.username-taken { color: #ef4444; font-weight: 600; }
+.username-checking { color: #64748b; }
 </style>
 {% endblock %}
 
@@ -142,23 +146,33 @@ textarea.form-control { min-height: 100px; resize: vertical; }
     <a href="{% url 'admin_dashboard' %}" class="btn-back">← Back to Dashboard</a>
   {% elif request.user.role == 'doctor' %}
     <a href="{% url 'doctor_dashboard' %}" class="btn-back">← Back to Dashboard</a>
-  {% elif request.user.role == 'reception' %}
+  {% elif request.user.role == 'receptionist' %}
     <a href="{% url 'reception_dashboard' %}" class="btn-back">← Back to Dashboard</a>
   {% elif request.user.role == 'patient' %}
     <a href="{% url 'patient_dashboard' %}" class="btn-back">← Back to Dashboard</a>
   {% else %}
     <a href="{% url 'home' %}" class="btn-back">← Back to Dashboard</a>
   {% endif %}
-
 </div>
+
 <div class="form-wrapper">
   <div class="form-card">
     <div class="patient-form-title">Add New Patient</div>
-    <div class="patient-form-subtitle">Fill in the patient information below</div>
+    <div class="patient-form-subtitle">Fill in patient details. <strong>Username = Password</strong> (easy login!)</div>
     <div id="form-errors" style="display:none;"></div>
+    
     <form method="post" class="patient-form" id="patient-form" novalidate enctype="multipart/form-data">
       {% csrf_token %}
+      
       <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Username (also Password!)</label>
+          {{ form.username }}
+          <div id="usernameStatus" class="username-status"></div>
+          {% if form.username.errors %}
+            <div class="text-danger">{{ form.username.errors }}</div>
+          {% endif %}
+        </div>
         <div class="form-group">
           <label class="form-label required" for="{{ form.first_name.id_for_label }}">First Name</label>
           {{ form.first_name }}
@@ -166,6 +180,9 @@ textarea.form-control { min-height: 100px; resize: vertical; }
             <div class="text-danger">{{ form.first_name.errors }}</div>
           {% endif %}
         </div>
+      </div>
+      
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label required" for="{{ form.last_name.id_for_label }}">Last Name</label>
           {{ form.last_name }}
@@ -173,16 +190,17 @@ textarea.form-control { min-height: 100px; resize: vertical; }
             <div class="text-danger">{{ form.last_name.errors }}</div>
           {% endif %}
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label class="form-label required" for="id_date_of_birth">Date of Birth</label>
-          <input id="id_date_of_birth" name="date_of_birth" type="date" class="form-control" autocomplete="bday" value="{{ form.date_of_birth.value|default_if_none:'' }}" max="{{ dob_max|default:'' }}" placeholder="YYYY-MM-DD" required />
-          <div class="form-text">Only past dates are allowed.</div>
+          <input id="id_date_of_birth" name="date_of_birth" type="date" class="form-control" autocomplete="bday" value="{{ form.date_of_birth.value|default_if_none:'' }}" placeholder="YYYY-MM-DD" required />
+          <div class="form-text">Only past dates allowed.</div>
           {% if form.date_of_birth.errors %}
             <div class="text-danger">{{ form.date_of_birth.errors }}</div>
           {% endif %}
         </div>
+      </div>
+      
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label required" for="{{ form.phone.id_for_label }}">Phone Number</label>
           {{ form.phone }}
@@ -191,34 +209,36 @@ textarea.form-control { min-height: 100px; resize: vertical; }
             <div class="text-danger">{{ form.phone.errors }}</div>
           {% endif %}
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label class="form-label required" for="{{ form.email.id_for_label }}">Email Address</label>
           {{ form.email }}
-          <div class="form-text">We'll never share your email with anyone</div>
+          <div class="form-text">Patient login email</div>
           {% if form.email.errors %}
             <div class="text-danger">{{ form.email.errors }}</div>
           {% endif %}
         </div>
+      </div>
+      
+      <div class="form-row">
         <div class="form-group">
-          <label class="form-label required" for="{{ form.emergency_contact.id_for_label }}">Emergency Contact</label>
+          <label class="form-label" for="{{ form.emergency_contact.id_for_label }}">Emergency Contact</label>
           {{ form.emergency_contact }}
           <div class="form-text">Another phone for emergencies</div>
           {% if form.emergency_contact.errors %}
             <div class="text-danger">{{ form.emergency_contact.errors }}</div>
           {% endif %}
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="{{ form.address.id_for_label }}">Address</label>
           {{ form.address }}
-          <div class="form-text">Full address with street, city, and zip</div>
+          <div class="form-text">Full address with street, city, zip</div>
           {% if form.address.errors %}
             <div class="text-danger">{{ form.address.errors }}</div>
           {% endif %}
         </div>
+      </div>
+      
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="{{ form.medical_history.id_for_label }}">Medical History</label>
           {{ form.medical_history }}
@@ -227,8 +247,6 @@ textarea.form-control { min-height: 100px; resize: vertical; }
             <div class="text-danger">{{ form.medical_history.errors }}</div>
           {% endif %}
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="{{ form.blood_group.id_for_label }}">Blood Group</label>
           {{ form.blood_group }}
@@ -236,6 +254,9 @@ textarea.form-control { min-height: 100px; resize: vertical; }
             <div class="text-danger">{{ form.blood_group.errors }}</div>
           {% endif %}
         </div>
+      </div>
+      
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label required" for="{{ form.gender.id_for_label }}">Gender</label>
           {{ form.gender }}
@@ -244,6 +265,7 @@ textarea.form-control { min-height: 100px; resize: vertical; }
           {% endif %}
         </div>
       </div>
+      
       <div class="photo-section-divided">
         <div class="photo-col-upload">
           <label class="form-label" for="id_photo">Photo (optional)</label>
@@ -254,24 +276,19 @@ textarea.form-control { min-height: 100px; resize: vertical; }
           <div id="photo-filename-debug" class="form-text">No file selected</div>
         </div>
         <div class="photo-col-preview">
-          <img
-            id="photo-preview"
-            src="{% if form.instance and form.instance.photo %}{{ form.instance.photo.url }}{% else %}{% static 'img/no-photo.png' %}{% endif %}"
-            alt="Preview"
-            class="{% if not form.instance or not form.instance.photo %}photo-preview-hidden{% endif %}"
-          />
+          <img id="photo-preview" src="{% if form.instance and form.instance.photo %}{{ form.instance.photo.url }}{% else %}{% static 'img/no-photo.png' %}{% endif %}" alt="Preview" class="{% if not form.instance or not form.instance.photo %}photo-preview-hidden{% endif %}" />
           <div style="margin-top:8px;" class="form-text">Allowed: JPG or PNG, up to 2MB.</div>
         </div>
       </div>
+      
       <div class="form-actions">
-        <button type="submit" class="btn-submit">Save Patient</button>
+        <button type="submit" class="btn-submit"> Save Patient</button>
         <a href="{% url 'patient_list' %}" class="btn-cancel">Cancel</a>
       </div>
     </form>
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
 (function() {
@@ -282,13 +299,54 @@ textarea.form-control { min-height: 100px; resize: vertical; }
       document.addEventListener('DOMContentLoaded', fn);
     }
   }
+  
   ready(function() {
-    document.querySelectorAll('.patient-form input, .patient-form textarea, .patient-form select').forEach(el => {
-      if (!el.classList.contains('form-control')) el.classList.add('form-control');
-    });
+    const usernameInput = document.getElementById('id_username');
+    const usernameStatus = document.getElementById('usernameStatus');
+    let checkTimeout;
     
-    var previewImage = document.getElementById('photo-preview');
-    var photoInput = document.getElementById('id_photo');
+    // Username live check
+    if (usernameInput && usernameStatus) {
+      usernameInput.addEventListener('input', function() {
+        clearTimeout(checkTimeout);
+        const username = this.value.trim();
+        
+        if (username.length === 0) {
+          usernameStatus.innerHTML = '';
+          usernameInput.style.borderColor = '#e2e8f0';
+          return;
+        }
+        
+        usernameStatus.innerHTML = '<span class="username-checking">🔍 Checking...</span>';
+        usernameInput.style.borderColor = '#e2e8f0';
+        
+        if (username.length < 3) {
+          usernameStatus.innerHTML = '<span class="text-warning">3+ characters required</span>';
+          return;
+        }
+        
+        checkTimeout = setTimeout(function() {
+          fetch('/api/check-username/?username=' + encodeURIComponent(username))
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+              if (data.available) {
+                usernameStatus.innerHTML = '<span class="username-available">✅ Available!</span>';
+                usernameInput.style.borderColor = '#10b981';
+              } else {
+                usernameStatus.innerHTML = '<span class="username-taken">❌ Taken</span><br><small>Try: <strong>' + data.suggestion + '</strong></small>';
+                usernameInput.style.borderColor = '#ef4444';
+              }
+            })
+            .catch(function() {
+              usernameStatus.innerHTML = '<span class="username-checking">⚠️ Check failed</span>';
+            });
+        }, 500);
+      });
+    }
+    
+    // Photo preview
+    const previewImage = document.getElementById('photo-preview');
+    const photoInput = document.getElementById('id_photo');
     
     if (photoInput && previewImage) {
       photoInput.addEventListener('change', function() {
@@ -302,7 +360,7 @@ textarea.form-control { min-height: 100px; resize: vertical; }
         }
         
         if (file.size > 2 * 1024 * 1024) {
-          if (typeof Toast !== 'undefined') Toast.error('File too large. Maximum 2MB allowed.');
+          alert('File too large. Maximum 2MB allowed.');
           photoInput.value = '';
           previewImage.classList.add('photo-preview-hidden');
           if (debug) debug.textContent = 'No file selected';
@@ -310,7 +368,7 @@ textarea.form-control { min-height: 100px; resize: vertical; }
         }
         
         if (!['image/png', 'image/jpeg'].includes(file.type)) {
-          if (typeof Toast !== 'undefined') Toast.warning('Please select a JPG or PNG image only');
+          alert('Please select a JPG or PNG image only');
           photoInput.value = '';
           previewImage.classList.add('photo-preview-hidden');
           if (debug) debug.textContent = 'No file selected';
@@ -318,7 +376,6 @@ textarea.form-control { min-height: 100px; resize: vertical; }
         }
         
         if (debug) debug.textContent = '✓ Selected: ' + file.name;
-        if (typeof Toast !== 'undefined') Toast.success('Photo selected successfully!');
         
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -329,11 +386,17 @@ textarea.form-control { min-height: 100px; resize: vertical; }
       });
     }
     
+    // DOB max date = today
     const dobInput = document.getElementById('id_date_of_birth');
     if (dobInput) {
       const today = new Date().toISOString().split('T')[0];
       dobInput.setAttribute('max', today);
     }
+    
+    // Add form-control class
+    document.querySelectorAll('.patient-form input, .patient-form textarea, .patient-form select').forEach(function(el) {
+      if (!el.classList.contains('form-control')) el.classList.add('form-control');
+    });
   });
 })();
 </script>

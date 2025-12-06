@@ -1,3 +1,8 @@
+
+
+
+
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -9,9 +14,9 @@ from .forms import UserCreationForm
 User = get_user_model()
 
 
+
 @login_required
 def staff_directory(request):
-    """Display staff directory with admins, doctors, and receptionists."""
     admins = (
         User.objects.filter(role='admin')
         .select_related('staff')
@@ -39,13 +44,14 @@ def staff_directory(request):
 
 @login_required
 def staff_delete_view(request, pk):
-    """Delete staff user (admin/superuser only)."""
+    # Only admin (or superuser) can delete staff
     if not (request.user.is_superuser or getattr(request.user, "role", "") == "admin"):
         messages.error(request, "You don't have permission to delete staff.")
         return redirect("staff_directory")
 
     user = get_object_or_404(User, pk=pk)
-    
+
+    # allow deleting only admin/doctor/receptionist
     if user.role not in ["doctor", "receptionist", "admin"]:
         messages.error(request, "Only admins, doctors and receptionists can be deleted here.")
         return redirect("staff_directory")
@@ -58,10 +64,14 @@ def staff_delete_view(request, pk):
 
 @login_required
 def create_user_view(request):
-    """Create new users (Admin/Receptionist only)."""
+    """
+    Create new users (Admin/Receptionist only).
+    - Admin: can create doctors, receptionists, admins.
+    - Receptionist: can create only doctors.
+    """
     current_user = request.user
 
-    # Permission check
+    # Permission check: Only admin and receptionist can open this page
     if not getattr(current_user, "role", None) in ["admin", "receptionist"] and not current_user.is_superuser:
         messages.error(request, "You don't have permission to create users.")
         return redirect('dashboard')
@@ -75,14 +85,23 @@ def create_user_view(request):
             if getattr(current_user, "role", None) == "receptionist" and role != "doctor":
                 form.add_error("role", "Receptionists can only create doctor accounts.")
                 messages.error(request, "You are allowed to create only doctor users.")
-            # Admin/superuser -> block patient creation
-            elif (current_user.is_superuser or getattr(current_user, "role", "") == "admin") and role == "patient":
+                return render(request, 'users/user_create.html', {
+                    'form': form,
+                    'page_title': 'Create New User',
+                })
+
+            # Admin/superuser -> block patient creation on this screen
+            if (current_user.is_superuser or getattr(current_user, "role", "") == "admin") and role == "patient":
                 form.add_error("role", "Patients cannot be created from this screen.")
                 messages.error(request, "Use the patient registration flow to create patients.")
-            else:
-                user = form.save()
-                messages.success(request, f"User '{user.username}' created successfully!")
-                return redirect('create_user')
+                return render(request, 'users/user_create.html', {
+                    'form': form,
+                    'page_title': 'Create New User',
+                })
+
+            user = form.save()
+            messages.success(request, f"User '{user.username}' created successfully!")
+            return redirect('create_user')
         else:
             messages.error(request, "Failed to create user. Please check the errors below.")
     else:
@@ -97,7 +116,9 @@ def create_user_view(request):
 
 @login_required
 def staff_edit_view(request, pk):
-    """Edit User + Staff tables for doctor/receptionist."""
+    """
+    Edit User + Staff tables for doctor/receptionist.
+    """
     current_user = request.user
 
     # Permission check
@@ -141,7 +162,7 @@ def staff_edit_view(request, pk):
         user_to_edit.last_name = last_name
         user_to_edit.save()
 
-        # Update STAFF table
+        # UPDATE STAFF table
         staff.phone = request.POST.get('phone', staff.phone or '').strip()
         staff.address = request.POST.get('address', staff.address or '').strip()
         if 'profile_photo' in request.FILES:

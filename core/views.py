@@ -541,3 +541,24 @@ def contact_queries_list(request):
         queries = queries.order_by('-created_at')
     
     return render(request, 'core/contact_queries_list.html', {'queries': queries})
+
+
+# ✅ ADD THIS COMPLETE VIEW
+def check_username_availability(request):
+    """AJAX endpoint to check if username is available"""
+    username = request.GET.get('username', '').strip().lower()
+    
+    if len(username) < 3:
+        return JsonResponse({'available': False, 'suggestion': f"{username}123"})
+    
+    if User.objects.filter(username__iexact=username).exists():
+        # Suggest alternative
+        base = username.replace('.', '').replace('-', '')
+        suggestion = f"{base}1"
+        counter = 1
+        while User.objects.filter(username__iexact=suggestion).exists():
+            counter += 1
+            suggestion = f"{base}{counter}"
+        return JsonResponse({'available': False, 'suggestion': suggestion})
+    
+    return JsonResponse({'available': True, 'suggestion': ''})

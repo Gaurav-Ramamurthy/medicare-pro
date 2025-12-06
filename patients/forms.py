@@ -264,7 +264,19 @@ class ReceptionistPatientCreateForm(forms.ModelForm):
     Creates both User account and Patient medical record.
     """
     
-    # User fields (personal info) - REQUIRED for receptionist form
+    # ✅ NEW: Username field (user can enter!)
+    username = forms.CharField(
+        max_length=150,
+        required=True,
+        help_text="Patient login username (letters, numbers, dots, hyphens)",
+        widget=forms.TextInput(attrs={
+            "class": "form-control", 
+            "placeholder": "john.doe",
+            "id": "id_username"
+        })
+    )
+    
+    # User fields (personal info)
     first_name = forms.CharField(
         max_length=150,
         required=True,
@@ -317,9 +329,30 @@ class ReceptionistPatientCreateForm(forms.ModelForm):
             self.fields['first_name'].initial = user.first_name
             self.fields['last_name'].initial = user.last_name
             self.fields['email'].initial = user.email
+            self.fields['username'].initial = user.username  # ✅ NEW
             self.fields['phone'].initial = getattr(user, 'phone', '')
             self.fields['address'].initial = getattr(user, 'address', '')
-
+    
+    def clean_username(self):
+        """✅ NEW: Validate username"""
+        username = self.cleaned_data.get("username", "").strip().lower()
+        if not username:
+            raise forms.ValidationError("Username is required.")
+        if len(username) < 3:
+            raise forms.ValidationError("Username must be 3+ characters.")
+        if not re.match(r'^[a-z0-9.-]+$', username):
+            raise forms.ValidationError("Username can only contain letters, numbers, dots, and hyphens.")
+        
+        # Check if username exists
+        qs = User.objects.filter(username__iexact=username)
+        if self.instance and self.instance.user:
+            qs = qs.exclude(pk=self.instance.user.pk)
+        
+        if qs.exists():
+            raise forms.ValidationError("Username already taken.")
+        
+        return username
+    
     def clean_email(self):
         """Validate email is unique"""
         email = self.cleaned_data.get("email", "").strip()
@@ -333,7 +366,7 @@ class ReceptionistPatientCreateForm(forms.ModelForm):
         if qs.exists():
             raise forms.ValidationError("This email is already in use.")
         return email
-
+    
     def clean_phone(self):
         """Validate phone format"""
         phone = (self.cleaned_data.get("phone") or "").strip()
@@ -344,7 +377,7 @@ class ReceptionistPatientCreateForm(forms.ModelForm):
         if not PHONE_RE.match(normalized):
             raise forms.ValidationError("Enter a valid phone number (7–15 digits).")
         return normalized
-
+    
     def clean_emergency_contact(self):
         """Validate emergency contact format"""
         phone = (self.cleaned_data.get("emergency_contact") or "").strip()
@@ -355,15 +388,16 @@ class ReceptionistPatientCreateForm(forms.ModelForm):
         if not PHONE_RE.match(normalized):
             raise forms.ValidationError("Enter a valid phone number (7–15 digits).")
         return normalized
-
+    
     def save(self, commit=True):
-        """Save both User and Patient"""
+        """✅ FIXED: Password = Username"""
         patient = super().save(commit=False)
         
-        # Get User data from form
+        # Get data from form
         first_name = self.cleaned_data.get('first_name', '')
         last_name = self.cleaned_data.get('last_name', '')
         email = self.cleaned_data.get('email', '')
+        username = self.cleaned_data.get('username', '').strip().lower()  # ✅ Password = Username
         phone = self.cleaned_data.get('phone', '')
         address = self.cleaned_data.get('address', '')
         
@@ -373,38 +407,32 @@ class ReceptionistPatientCreateForm(forms.ModelForm):
             user.first_name = first_name
             user.last_name = last_name
             user.email = email
+            user.username = username
             if hasattr(user, 'phone'):
                 user.phone = phone
             if hasattr(user, 'address'):
                 user.address = address
+            user.set_password(username)  # ✅ Password = Username
             user.save()
         else:
-            # Create new user account
-            username = email.split('@')[0] if '@' in email else f"patient{uuid.uuid4().hex[:8]}"
-            
-            # Ensure unique username
-            base_username = username
-            counter = 1
-            while User.objects.filter(username=username).exists():
-                username = f"{base_username}{counter}"
-                counter += 1
-            
-            # Create user with random password
+            # ✅ Create new user - PASSWORD = USERNAME
             user = User.objects.create_user(
                 username=username,
                 email=email,
+                password=username,  # ✅ Password = Username (same as username!)
                 first_name=first_name,
                 last_name=last_name,
-                phone=phone,
-                address=address,
+                phone=phone if hasattr(User._meta.get_fields(), 'phone') else None,
+                address=address if hasattr(User._meta.get_fields(), 'address') else None,
                 role="patient",
-                password=User.objects.make_random_password(length=12),
-                is_active=False,  # Inactive until activated
+                is_active=True,
             )
-            
             patient.user = user
         
         if commit:
             patient.save()
+        
+        # ✅ Store for view success message
+        self._created_password = username  # Same as username!
         
         return patient

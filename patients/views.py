@@ -22,6 +22,8 @@ from medical.models import MedicalRecord, Prescription
 # App forms
 from .forms import ReceptionistPatientCreateForm
 from medical.forms import MedicalRecordForm
+from core.decorators import receptionist_or_admin_required
+
 # Custom User model
 User = get_user_model()
 
@@ -98,6 +100,19 @@ def patient_register(request):
 # =====================================
 # CREATE PATIENT (Admin/Receptionist)
 # =====================================
+from django.utils.crypto import get_random_string
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from .forms import ReceptionistPatientCreateForm
+from patients.models import Patient
+
+User = get_user_model()
+
 @login_required
 def create_patient(request):
     """Admin/Receptionist can create new patients."""
@@ -115,9 +130,21 @@ def create_patient(request):
         if form.is_valid():
             try:
                 with transaction.atomic():
+                    # ✅ Save patient (form handles user creation)
                     patient = form.save()
-                    messages.success(request, f"✅ Patient '{patient.full_name}' created successfully!")
+                    
+                    # ✅ Get username for success message
+                    username = patient.user.username if patient.user else 'N/A'
+                    
+                    messages.success(
+                        request, 
+                        f"✅ Patient '{patient.full_name}' created successfully!<br>"
+                        f"👤 <strong>Username:</strong> {username}<br>"
+                        f"🔑 <strong>Password:</strong> {username}<br>"
+                        f"📧 <strong>Email:</strong> {patient.email}"
+                    )
                     return redirect(reverse("patient_detail", args=[patient.pk]))
+                    
             except Exception as exc:
                 messages.error(request, "Failed to create patient. Please try again.")
                 if settings.DEBUG:
@@ -140,7 +167,7 @@ def create_patient(request):
 # =====================================
 # EDIT PATIENT
 # =====================================
-@login_required
+@receptionist_or_admin_required
 def patient_edit(request, pk):
     """Admin/Receptionist can edit patient data."""
     if request.user.role not in ['admin', 'receptionist']:
@@ -191,7 +218,7 @@ def patient_list(request):
     user = request.user
 
     if user.role == 'patient':
-        return redirect('profile')
+        return redirect('patient_detail', pk=user.patient.pk)
 
     blood_group = request.GET.get("blood_group", "").strip()
     q = request.GET.get("q", "").strip()

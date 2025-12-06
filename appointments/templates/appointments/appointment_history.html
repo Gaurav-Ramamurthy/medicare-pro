@@ -171,7 +171,6 @@
   flex-shrink: 0;
   display: block;
 }
-
 .filter-option.active {
   background: #e0f2fe;
   color: #0369a1;
@@ -217,6 +216,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  table-layout: fixed;
 }
 .table-history thead {
   background: #f8fafc;
@@ -230,17 +230,17 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   white-space: nowrap;
+  width: auto;
 }
 .table-history td {
   padding: 14px 12px;
   border-bottom: 1px solid #f1f5f9;
   color: #334155;
 }
-.table-history th:nth-child(5),
+/* ✅ UPDATED - Only apply padding when Actions column exists */
 .table-history th:nth-child(6) {
   padding-left: 17px !important;
 }
-
 .table-history tbody tr:hover {
   background: #f8fafc;
 }
@@ -261,7 +261,6 @@
   background: #fee2e2;
   color: #dc2626;
 }
-
 .status-scheduled {
   background: #eeecec97;
   color: #080808ff;
@@ -424,7 +423,6 @@
 }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="history-wrapper">
 
@@ -458,14 +456,14 @@
       <button type="submit" class="btn-search">Search</button>
       <input type="hidden" name="order" id="orderInput" value="{{ request.GET.order|default:'desc' }}" />
       <div class="filter-dropdown">
-      <button type="button" class="btn-filter-toggle" id="filterToggle" aria-label="Filter options">
-        <svg xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-        </svg>
-      </button>
+        <button type="button" class="btn-filter-toggle" id="filterToggle" aria-label="Filter options">
+          <svg xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+        </button>
 
         <div class="filter-menu" id="filterMenu">
           <button type="button" class="filter-option {% if request.GET.order != 'asc' %}active{% endif %}" data-value="desc">Newest First</button>
@@ -496,74 +494,83 @@
       <table class="table-history">
         <thead>
           <tr>
-            <th style="width:22%;">Patient</th>
-            <th style="width:22%;">Doctor</th>
-            <th style="width:12%;">Date</th>
-            <th style="width:11%;">Time</th>
-            <th style="width:12%;">Status</th>
-            <th style="width:21%;">Actions</th>
+            {% if user.role == 'doctor' %}
+              <!-- ✅ DOCTORS: 5 columns - PROPORTIONAL DISTRIBUTION -->
+              <th style="width:28%;">Patient</th>
+              <th style="width:28%;">Doctor</th>
+              <th style="width:16%;">Date</th>
+              <th style="width:14%;">Time</th>
+              <th style="width:14%;">Status</th>
+            {% else %}
+              <!-- ✅ ADMIN/RECEPTIONIST: 6 columns - ORIGINAL WIDTHS -->
+              <th style="width:22%;">Patient</th>
+              <th style="width:22%;">Doctor</th>
+              <th style="width:12%;">Date</th>
+              <th style="width:11%;">Time</th>
+              <th style="width:12%;">Status</th>
+              <th style="width:21%;">Actions</th>
+            {% endif %}
           </tr>
         </thead>
-<tbody id="history-tbody">
-  {% for a in history %}
-  <tr data-appointment-id="{{ a.pk }}" data-date="{% if a.scheduled_time %}{{ a.scheduled_time|localtime|date:'Y-m-d' }}{% endif %}"
-      data-view-url="{% url 'appointment_detail' a.pk %}" style="cursor: pointer;">
-    <td data-label="Patient">
-      {% if a.patient and a.patient.pk %}
-        {% if a.patient.first_name or a.patient.last_name %}
-          {{ a.patient.first_name }} {{ a.patient.last_name }}
-        {% else %}
-          {{ a.patient.email|default:a.patient }}
-        {% endif %}
-      {% else %}
-        <span style="color:#94a3b8;">Deleted Patient</span>
-      {% endif %}
-    </td>
-    <td data-label="Doctor">
-      {% if a.doctor %}
-        Dr. {{ a.doctor.get_full_name|default:a.doctor.username }}
-      {% else %}
-        <span style="color:#94a3b8;">Unassigned</span>
-      {% endif %}
-    </td>
-    <td data-label="Date" style="color:#64748b;">
-      {% if a.scheduled_time %}
-        {{ a.scheduled_time|localtime|date:"Y-m-d" }}
-      {% else %}
-        —
-      {% endif %}
-    </td>
-    <td data-label="Time" style="color:#64748b;">
-      {% if a.scheduled_time %}
-        {{ a.scheduled_time|localtime|time:"g:i A" }}
-      {% else %}
-        —
-      {% endif %}
-    </td>
-    <td data-label="Status">
-      <span class="status-badge-history status-{{ a.status|lower }}">
-        {{ a.get_status_display|default:a.status|title }}
-      </span>
-    </td>
-    <td data-label="Actions">
-      {% if user.role == 'admin' or user.role == 'doctor' %}
-        {# Removed explicit 'View' link #}
-      {% endif %}
-
-      {% if user.is_authenticated %}
-        {% if a.patient and a.patient.user and a.patient.user.is_active %}
-          {% if user.role == 'admin' or user.role == 'receptionist' %}
-            <a href="{% url 'appointment_reschedule' a.pk %}" class="btn-reschedule">Reschedule</a>
-          {% elif a.patient and user.patient and a.patient.pk == user.patient.pk %}
-            <a href="{% url 'appointment_reschedule' a.pk %}" class="btn-reschedule">Reschedule</a>
-          {% endif %}
-        {% endif %}
-      {% endif %}
-    </td>
-  </tr>
-  {% endfor %}
-</tbody>
-
+        <tbody id="history-tbody">
+          {% for a in history %}
+          <tr data-appointment-id="{{ a.pk }}" 
+              data-date="{% if a.scheduled_time %}{{ a.scheduled_time|localtime|date:'Y-m-d' }}{% endif %}"
+              data-view-url="{% url 'appointment_detail' a.pk %}" 
+              style="cursor: pointer;">
+            <td data-label="Patient">
+              {% if a.patient and a.patient.pk %}
+                {% if a.patient.first_name or a.patient.last_name %}
+                  {{ a.patient.first_name }} {{ a.patient.last_name }}
+                {% else %}
+                  {{ a.patient.email|default:a.patient }}
+                {% endif %}
+              {% else %}
+                <span style="color:#94a3b8;">Deleted Patient</span>
+              {% endif %}
+            </td>
+            <td data-label="Doctor">
+              {% if a.doctor %}
+                Dr. {{ a.doctor.get_full_name|default:a.doctor.username }}
+              {% else %}
+                <span style="color:#94a3b8;">Unassigned</span>
+              {% endif %}
+            </td>
+            <td data-label="Date" style="color:#64748b;">
+              {% if a.scheduled_time %}
+                {{ a.scheduled_time|localtime|date:"Y-m-d" }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td data-label="Time" style="color:#64748b;">
+              {% if a.scheduled_time %}
+                {{ a.scheduled_time|localtime|time:"g:i A" }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td data-label="Status">
+              <span class="status-badge-history status-{{ a.status|lower }}">
+                {{ a.get_status_display|default:a.status|title }}
+              </span>
+            </td>
+            {% if user.role != 'doctor' %}
+              <td data-label="Actions">
+                {% if user.is_authenticated %}
+                  {% if a.patient and a.patient.user and a.patient.user.is_active %}
+                    {% if user.role == 'admin' or user.role == 'receptionist' %}
+                      <a href="{% url 'appointment_reschedule' a.pk %}" class="btn-reschedule">Reschedule</a>
+                    {% elif a.patient and user.patient and a.patient.pk == user.patient.pk %}
+                      <a href="{% url 'appointment_reschedule' a.pk %}" class="btn-reschedule">Reschedule</a>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
       </table>
     </div>
 
@@ -672,19 +679,19 @@
       if (oldTbody && newTbody) oldTbody.innerHTML = newTbody.innerHTML;
       if (oldPagination && newPagination) oldPagination.innerHTML = newPagination.innerHTML;
       status.textContent = q ? `Showing results for "${q}"` : 'Showing all history';
+      attachHistoryRowClicks();
     } catch (err) {
       console.error('Search failed:', err);
       status.textContent = 'Search failed — showing current results';
     }
   }
-// Make history rows clickable to view appointment detail
+
   function attachHistoryRowClicks() {
     document.querySelectorAll('#history-tbody tr').forEach(function(row) {
       const viewUrl = row.getAttribute('data-view-url');
       if (!viewUrl) return;
 
       row.onclick = function(e) {
-        // Ignore clicks on links/buttons inside row
         if (e.target.closest('a') || e.target.closest('button')) {
           return;
         }
@@ -693,7 +700,6 @@
     });
   }
 
-  // Attach on page load
   attachHistoryRowClicks();
 
   if (input) {
