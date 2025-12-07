@@ -269,7 +269,6 @@ class UserCreationForm(forms.ModelForm):
 # Patient forms
 # -----------------------------
 import re
-import imghdr
 import uuid
 from django import forms
 from django.conf import settings
