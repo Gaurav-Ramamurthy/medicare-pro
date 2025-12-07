@@ -171,11 +171,46 @@ def appointment_list(request):
 # =====================================
 # APPOINTMENT HISTORY (PAST)
 # =====================================
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
+from django.db.models.functions import ExtractYear, ExtractMonth, ExtractHour, ExtractMinute
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from datetime import datetime, time as dt_time
+import re
+
 @login_required
+@csrf_exempt
 def appointment_history(request):
-    """List past appointments with advanced search/filtering."""
+    """List past appointments with advanced search/filtering + inline status updates."""
     now = timezone.now()
-    
+
+    # ========= 1) HANDLE STATUS UPDATE (NORMAL POST) =========
+    if request.method == 'POST':
+        appointment_id = request.POST.get('appointment_id')
+        new_status = request.POST.get('status')
+
+        try:
+            appointment = Appointment.objects.get(pk=appointment_id)
+
+            user_role = getattr(request.user, "role", None)
+            # Permission checks: doctor (only own), admin, receptionist
+            if (user_role in ['doctor', 'admin', 'receptionist'] and
+                (user_role != 'doctor' or appointment.doctor == request.user)):
+
+                valid_statuses = ['completed', 'cancelled']
+                if new_status in valid_statuses:
+                    # Bypass model full_clean() so past appointments can change status
+                    Appointment.objects.filter(pk=appointment.pk).update(status=new_status)
+        except Appointment.DoesNotExist:
+            pass
+
+        # After POST, redirect back so page reloads with updated status
+        return redirect('appointment_history')
+
+    # ========= 2) BUILD QUERYSET FOR GET (LIST + SEARCH) =========
     # PAST APPOINTMENTS ONLY
     qs = Appointment.objects.filter(
         scheduled_time__lt=now
@@ -217,7 +252,7 @@ def appointment_history(request):
     q = (request.GET.get("q") or "").strip()
     if q:
         q_lower = q.lower()
-        
+
         # Status keywords
         if "completed" in q_lower:
             qs = qs.filter(status="completed")
@@ -226,22 +261,38 @@ def appointment_history(request):
         elif "cancelled" in q_lower or "canceled" in q_lower:
             qs = qs.filter(status="cancelled")
         else:
-            # Date/Time/Number parsing
             date_obj = None
-            m_iso = re.search(r"^\s*(\d{4})[-/](\d{1,2})[-/](\d{1,2})\s*$", q)
-            if m_iso:
-                try:
-                    date_obj = datetime(int(m_iso.group(1)), int(m_iso.group(2)), int(m_iso.group(3))).date()
-                except ValueError:
-                    pass
-            elif m_eu := re.search(r"^\s*(\d{1,2})[-/](\d{1,2})[-/](\d{4})\s*$", q):
-                try:
-                    date_obj = datetime(int(m_eu.group(3)), int(m_eu.group(2)), int(m_eu.group(1))).date()
-                except ValueError:
-                    pass
-            elif pd := parse_date(q):
-                date_obj = pd
 
+            # Direct ISO-like yyyy-mm-dd
+            if re.match(r'\d{4}-\d{2}-\d{2}', q):
+                try:
+                    date_obj = datetime.strptime(q.strip(), '%Y-%m-%d').date()
+                except ValueError:
+                    date_obj = None
+
+            # Try various date formats
+            if not date_obj:
+                m_iso = re.search(r"^\s*(\d{4})[-/](\d{1,2})[-/](\d{1,2})\s*$", q)
+                if m_iso:
+                    try:
+                        date_obj = datetime(
+                            int(m_iso.group(1)),
+                            int(m_iso.group(2)),
+                            int(m_iso.group(3))
+                        ).date()
+                    except ValueError:
+                        date_obj = None
+                elif m_eu := re.search(r"^\s*(\d{1,2})[-/](\d{1,2})[-/](\d{4})\s*$", q):
+                    try:
+                        date_obj = datetime(
+                            int(m_eu.group(3)),
+                            int(m_eu.group(2)),
+                            int(m_eu.group(1))
+                        ).date()
+                    except ValueError:
+                        date_obj = None
+
+            # Date filter
             if date_obj:
                 tz = timezone.get_current_timezone()
                 start = timezone.make_aware(datetime.combine(date_obj, dt_time.min), tz)
@@ -260,7 +311,10 @@ def appointment_history(request):
                                 hour += 12
                             if ampm == "am" and hour == 12:
                                 hour = 0
-                        qs = qs.annotate(_h=ExtractHour("scheduled_time"), _m=ExtractMinute("scheduled_time")).filter(_h=hour, _m=minute)
+                        qs = qs.annotate(
+                            _h=ExtractHour("scheduled_time"),
+                            _m=ExtractMinute("scheduled_time")
+                        ).filter(_h=hour, _m=minute)
                     except ValueError:
                         qs = qs.filter(
                             Q(patient__user__first_name__icontains=q) |

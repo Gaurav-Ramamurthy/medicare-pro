@@ -682,8 +682,6 @@ h5 {
 
 {% block content %}
 <div class="container">
-
-  <!-- FRAME 1: Patient header + details + medical info -->
   <div class="frame">
     <div class="profile-header">
       <div class="profile-main">
@@ -704,10 +702,7 @@ h5 {
         </div>
       </div>
       <div class="profile-actions">
-        <a href="#" 
-           onclick="smartBack()" 
-           class="btn-custom btn-outline-custom"
-           id="smart-back-btn">← Back</a>
+        <button type="button" onclick="smartBack()" class="btn-custom btn-outline-custom" id="smart-back-btn">← Back</button>
         {% if patient.pk %}
         <a href="{% url 'patient_medical_records' patient.pk %}" class="btn-custom btn-primary-custom" style="margin-left: 8px;">
           Medical Records
@@ -719,16 +714,12 @@ h5 {
     <hr class="hr-divider">
 
     <div class="top-grid">
-      <!-- Patient details -->
       <div class="inner-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <h4 style="margin:0;">Patient Details</h4>
           {% if user.is_authenticated and user.patient and user.patient.pk == patient.pk %}
-            {# Patient viewing own profile - hide edit #}
           {% elif user.is_staff or user.role == 'receptionist' %}
-            <a href="{% url 'patient_edit' patient.pk %}" class="btn-custom btn-primary-custom" style="padding:8px 16px;font-size:0.9rem;">
-              Edit
-            </a>
+            <a href="{% url 'patient_edit' patient.pk %}" class="btn-custom btn-primary-custom" style="padding:8px 16px;font-size:0.9rem;">Edit</a>
           {% endif %}
         </div>
 
@@ -756,11 +747,7 @@ h5 {
           <div>
             <div class="detail-item-label">Date of birth</div>
             <div class="detail-item-value">
-              {% if patient.date_of_birth %}
-                {{ patient.date_of_birth|date:"M j, Y" }}
-              {% else %}
-                —
-              {% endif %}
+              {% if patient.date_of_birth %}{{ patient.date_of_birth|date:"M j, Y" }}{% else %}—{% endif %}
             </div>
           </div>
           <div>
@@ -778,7 +765,6 @@ h5 {
         </div>
       </div>
 
-      <!-- Medical History sidebar -->
       <div class="inner-card">
         <h5>Medical History</h5>
         <div class="detail-section">
@@ -795,7 +781,6 @@ h5 {
     </div>
   </div>
 
-  <!-- FRAME 2: Appointments / Records / Prescriptions hub -->
   <div class="frame medhub-wrapper">
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
@@ -803,60 +788,39 @@ h5 {
         <div class="muted">Appointments, records and prescriptions for this patient</div>
       </div>
       {% if user.is_authenticated and user.patient and user.patient.pk == patient.pk %}
-        {# hide + New Appointment for self #}
       {% else %}
         <a href="{% url 'appointment_add' %}?patient={{ patient.pk }}" class="btn-custom btn-primary-custom">+ New Appointment</a>
       {% endif %}
     </div>
 
-    <!-- Tabs -->
     <div class="medhub-tabs">
       <button type="button" class="medhub-tab active" data-target="tabAppointments">Appointments</button>
       <button type="button" class="medhub-tab" data-target="tabRecords">Records</button>
       <button type="button" class="medhub-tab" data-target="tabPrescriptions">Prescriptions</button>
     </div>
 
-    <!-- Search + filter -->
     <div class="medhub-search-card">
       <div class="medhub-search-filters">
-        <input
-          id="medhubSearchInput"
-          type="search"
-          class="medhub-search-input"
-          placeholder="🔍 Search by doctor, date, status, record text or medicine..."
-          autocomplete="off">
+        <input id="medhubSearchInput" type="search" class="medhub-search-input" placeholder="🔍 Search by doctor, date, status, record text or medicine..." autocomplete="off">
         <button type="button" class="medhub-btn-search" id="medhubSearchBtn">Search</button>
         <div class="medhub-filter-dropdown">
           <button type="button" class="medhub-btn-filter-toggle" id="medhubFilterToggle" aria-label="Filter options">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
             </svg>
           </button>
-          <div class="medhub-filter-menu" id="medhubFilterMenu">
+         <div class="medhub-filter-menu" id="medhubFilterMenu">
             <div class="medhub-filter-label">Appointments</div>
+            <button type="button" class="medhub-filter-option active" data-type="appointments" data-filter="all">All statuses</button>
             <button type="button" class="medhub-filter-option" data-type="appointments" data-filter="upcoming">Upcoming only</button>
             <button type="button" class="medhub-filter-option" data-type="appointments" data-filter="completed">Completed only</button>
-            <button type="button" class="medhub-filter-option" data-type="appointments" data-filter="all">All statuses</button>
-
-            <div class="medhub-filter-label">Records</div>
-            <button type="button" class="medhub-filter-option" data-type="records" data-filter="recent">Last 5</button>
-            <button type="button" class="medhub-filter-option" data-type="records" data-filter="all">All</button>
-
-            <div class="medhub-filter-label">Prescriptions</div>
-            <button type="button" class="medhub-filter-option" data-type="prescriptions" data-filter="recent">Last 5</button>
-            <button type="button" class="medhub-filter-option" data-type="prescriptions" data-filter="all">All</button>
           </div>
+
         </div>
       </div>
-      <div id="medhubSearchStatus" class="medhub-search-status">
-        Showing all items
-      </div>
+      <div id="medhubSearchStatus" class="medhub-search-status">Showing all items</div>
     </div>
 
-    <!-- 1) Appointments slide -->
     <div id="tabAppointments" class="medhub-tab-panel active">
       {% if appointments %}
         <div class="appointments-table-card">
@@ -871,11 +835,7 @@ h5 {
             </thead>
             <tbody>
               {% for a in appointments %}
-              <tr
-                data-type="appointment"
-                data-status="{{ a.status|lower }}"
-                data-text="{{ a.doctor.get_full_name|default:a.doctor.username }} {{ a.get_status_display|default:a.status }} {{ a.scheduled_time|localtime|date:'Y-m-d' }}"
-              >
+              <tr data-type="appointment" data-status="{{ a.status|lower }}" data-text="{{ a.doctor.get_full_name|default:a.doctor.username }} {{ a.get_status_display|default:a.status }} {{ a.scheduled_time|localtime|date:'Y-m-d' }}">
                 <td class="appt-col-index">{{ forloop.counter }}</td>
                 <td>
                   {% if a.scheduled_time %}
@@ -886,21 +846,11 @@ h5 {
                   {% endif %}
                 </td>
                 <td class="appt-doctor">
-                  {% if a.doctor %}
-                    {{ a.doctor.get_full_name|default:a.doctor.username }}
-                  {% else %}
-                    Unassigned
-                  {% endif %}
+                  {% if a.doctor %}{{ a.doctor.get_full_name|default:a.doctor.username }}{% else %}Unassigned{% endif %}
                 </td>
                 <td>
                   {% with s=a.status|lower %}
-                    <span class="appt-status-pill
-                      {% if s == 'scheduled' or s == 'pending' %} appt-status-scheduled
-                      {% elif s == 'completed' %} appt-status-completed
-                      {% elif s == 'cancelled' %} appt-status-cancelled
-                      {% else %} appt-status-scheduled
-                      {% endif %}
-                    ">
+                    <span class="appt-status-pill {% if s == 'scheduled' or s == 'pending' %}appt-status-scheduled{% elif s == 'completed' %}appt-status-completed{% elif s == 'cancelled' %}appt-status-cancelled{% else %}appt-status-scheduled{% endif %}">
                       {{ a.get_status_display|default:a.status|title }}
                     </span>
                   {% endwith %}
@@ -915,30 +865,19 @@ h5 {
       {% endif %}
     </div>
 
-    <!-- 2) Records slide -->
     <div id="tabRecords" class="medhub-tab-panel">
       {% if records %}
         <div class="medhub-record-grid" id="recordsList">
           {% for r in records %}
-          <div class="medhub-record-card"
-               data-type="record"
-               data-text="{{ r.author.get_full_name|default:r.author.username }} {{ r.file_description|default:'' }} {{ r.content|default:''|truncatewords:40 }}"
-               {% if r.attachment %}onclick="window.open('{{ r.attachment.url }}', '_blank', 'noopener')" style="cursor:pointer;"{% endif %}>
+          <div class="medhub-record-card" data-type="record" data-text="{{ r.author.get_full_name|default:r.author.username }} {{ r.file_description|default:'' }} {{ r.content|default:''|truncatewords:40 }}" {% if r.attachment %}onclick="window.open('{{ r.attachment.url }}', '_blank', 'noopener')" style="cursor:pointer;"{% endif %}>
             <div class="medhub-record-title">
-              {% if r.file_description %}
-                {{ r.file_description|truncatechars:50 }}
-              {% else %}
-                Medical Record
-              {% endif %}
+              {% if r.file_description %}{{ r.file_description|truncatechars:50 }}{% else %}Medical Record{% endif %}
             </div>
             <div class="medhub-record-meta">
-              {{ r.author.get_full_name|default:r.author.username }} •
-              {{ r.created_at|localtime|date:"M j, Y" }} · {{ r.created_at|localtime|time:"g:i A" }}
+              {{ r.author.get_full_name|default:r.author.username }} • {{ r.created_at|localtime|date:"M j, Y" }} · {{ r.created_at|localtime|time:"g:i A" }}
             </div>
             {% if r.content %}
-            <div class="medhub-record-content">
-              {{ r.content|truncatewords:30 }}
-            </div>
+            <div class="medhub-record-content">{{ r.content|truncatewords:30 }}</div>
             {% endif %}
             <div class="medhub-record-footer">
               {% if r.visibility %}
@@ -949,10 +888,7 @@ h5 {
               <div class="medhub-record-actions" onclick="event.stopPropagation();">
                 {% if user.is_authenticated and user.role == 'admin' or user == r.author %}
                   <a href="{% url 'medical_record_edit' r.pk %}" class="medhub-card-link">Edit</a>
-                  <a href="{% url 'medical_record_delete' r.pk %}"
-                     class="medhub-card-link"
-                     style="color:#dc2626;"
-                     onclick="return confirm('Delete this record?');">Delete</a>
+                  <a href="{% url 'medical_record_delete' r.pk %}" class="medhub-card-link" style="color:#dc2626;" onclick="return confirm('Delete this record?');">Delete</a>
                 {% endif %}
               </div>
             </div>
@@ -964,36 +900,23 @@ h5 {
       {% endif %}
       {% if records and patient.pk %}
         <div style="text-align:right;margin-top:14px;">
-          <a href="{% url 'patient_medical_records' patient.pk %}" class="btn-custom btn-outline-custom">
-            View all records
-          </a>
+          <a href="{% url 'patient_medical_records' patient.pk %}" class="btn-custom btn-outline-custom">View all records</a>
         </div>
       {% endif %}
     </div>
 
-    <!-- 3) Prescriptions slide -->
     <div id="tabPrescriptions" class="medhub-tab-panel">
       {% if prescriptions %}
         <div class="medhub-prescription-grid" id="prescriptionsList">
           {% for p in prescriptions %}
-          <div class="medhub-prescription-card"
-               data-type="prescription"
-               data-text="{{ p.medication_name }} {{ p.dosage }} {{ p.frequency }} {{ p.duration }} {{ p.instructions|default:'' }}">
+          <div class="medhub-prescription-card" data-type="prescription" data-text="{{ p.medication_name }} {{ p.dosage }} {{ p.frequency }} {{ p.duration }} {{ p.instructions|default:'' }}">
             <div>
               <div class="medhub-prescription-title">{{ p.medication_name }}</div>
-              <div class="medhub-prescription-line">
-                <strong>Dosage:</strong> {{ p.dosage }} mg
-              </div>
-              <div class="medhub-prescription-line">
-                <strong>Frequency:</strong> {{ p.frequency }}× per day
-              </div>
-              <div class="medhub-prescription-line">
-                <strong>Duration:</strong> {{ p.duration }} days
-              </div>
+              <div class="medhub-prescription-line"><strong>Dosage:</strong> {{ p.dosage }} mg</div>
+              <div class="medhub-prescription-line"><strong>Frequency:</strong> {{ p.frequency }}× per day</div>
+              <div class="medhub-prescription-line"><strong>Duration:</strong> {{ p.duration }} days</div>
               {% if p.instructions %}
-              <div class="medhub-prescription-line" style="margin-top:6px;font-style:italic;">
-                {{ p.instructions|truncatechars:60 }}
-              </div>
+              <div class="medhub-prescription-line" style="margin-top:6px;font-style:italic;">{{ p.instructions|truncatechars:60 }}</div>
               {% endif %}
               <div class="medhub-prescription-meta">
                 Dr. {{ p.doctor.get_full_name|default:p.doctor.username }}<br>
@@ -1016,134 +939,253 @@ h5 {
       {% endif %}
       {% if prescriptions and patient.pk %}
         <div style="text-align:right;margin-top:14px;">
-          <a href="{% url 'patient_medical_records' patient.pk %}" class="btn-custom btn-outline-custom">
-            View all prescriptions
-          </a>
+          <a href="{% url 'patient_medical_records' patient.pk %}" class="btn-custom btn-outline-custom">View all prescriptions</a>
         </div>
       {% endif %}
     </div>
-
-  </div>  {# end FRAME 2 #}
-
+  </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
+// ✅ DEFINE IMMEDIATELY (before DOMContentLoaded) so onclick works
 function smartBack() {
-  const referrer = document.referrer;
+  var referrer = document.referrer;
+  var userAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+  var userHasPatient = {{ user.patient.pk|default_if_none:"null" }} !== null;
   
-  // ✅ Get user info from data attributes (safe for Django templates)
-  const userAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
-  const userHasPatient = {{ user.patient.pk|default_if_none:"null" }} !== null;
-  
-  // ✅ PRIORITY 1: Patient users → Always Dashboard
   if (userAuthenticated && userHasPatient) {
     window.location.href = "{% url 'dashboard' %}";
     return;
   }
-
-  // ✅ PRIORITY 2: Staff - Smart referrer-based redirect
-  if (referrer.includes('/patients/') || referrer.includes('patient_list')) {
+  if (referrer.indexOf('/patients/') > -1 || referrer.indexOf('patient_list') > -1) {
     window.location.href = "{% url 'patient_list' %}";
-  } else if (referrer.includes('/appointments/') || referrer.includes('appointment')) {
+  } else if (referrer.indexOf('/appointments/') > -1 || referrer.indexOf('appointment') > -1) {
     window.location.href = "{% url 'appointment_list' %}";
   } else {
     window.history.back();
   }
 }
+</script>
+{% endblock %}
 
-document.addEventListener('DOMContentLoaded', function() {
-  const referrer = document.referrer;
-  const backBtn = document.getElementById('smart-back-btn');
+{% block extra_js %}
+<script>
+// Define user variables safely
+var USER_IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
+var USER_HAS_PATIENT = {% if user.patient.pk %}true{% else %}false{% endif %};
+var DASHBOARD_URL = "{% url 'dashboard' %}";
+var PATIENT_LIST_URL = "{% url 'patient_list' %}";
+var APPOINTMENT_LIST_URL = "{% url 'appointment_list' %}";
+
+// Smart back function (defined immediately for onclick)
+function smartBack() {
+  var referrer = document.referrer;
   
-  const userAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
-  const userHasPatient = {{ user.patient.pk|default_if_none:"null" }} !== null;
+  if (USER_IS_AUTHENTICATED && USER_HAS_PATIENT) {
+    window.location.href = DASHBOARD_URL;
+    return;
+  }
+  if (referrer.indexOf('/patients/') > -1 || referrer.indexOf('patient_list') > -1) {
+    window.location.href = PATIENT_LIST_URL;
+  } else if (referrer.indexOf('/appointments/') > -1 || referrer.indexOf('appointment') > -1) {
+    window.location.href = APPOINTMENT_LIST_URL;
+  } else {
+    window.history.back();
+  }
+}
+
+// Wait for DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+  initializePage();
+}
+
+function initializePage() {
+  var referrer = document.referrer;
+  var backBtn = document.getElementById('smart-back-btn');
 
   if (backBtn) {
-    if (userAuthenticated && userHasPatient) {
+    if (USER_IS_AUTHENTICATED && USER_HAS_PATIENT) {
       backBtn.textContent = '← Dashboard';
-      backBtn.title = 'Return to your dashboard';
-    } else if (referrer.includes('/patients/')) {
+    } else if (referrer.indexOf('/patients/') > -1) {
       backBtn.textContent = '← Patients';
-    } else if (referrer.includes('/appointments/')) {
+    } else if (referrer.indexOf('/appointments/') > -1) {
       backBtn.textContent = '← Appointments';
     } else {
       backBtn.textContent = '← Back';
     }
   }
-});
 
-// ========== MEDICAL HUB JS (tabs + search + filter) ==========
-document.addEventListener('DOMContentLoaded', function() {
-  const tabs = document.querySelectorAll('.medhub-tab');
-  const panels = {
+  var tabs = document.querySelectorAll('.medhub-tab');
+  var panels = {
     tabAppointments: document.getElementById('tabAppointments'),
     tabRecords: document.getElementById('tabRecords'),
     tabPrescriptions: document.getElementById('tabPrescriptions')
   };
-  const searchInput = document.getElementById('medhubSearchInput');
-  const searchBtn = document.getElementById('medhubSearchBtn');
-  const statusEl = document.getElementById('medhubSearchStatus');
+  var searchInput = document.getElementById('medhubSearchInput');
+  var searchBtn = document.getElementById('medhubSearchBtn');
+  var statusEl = document.getElementById('medhubSearchStatus');
+
+  // Track if search is active
+  var isSearchActive = false;
+  var currentAppointmentFilter = 'all'; // Track current appointment filter
 
   function getActivePanelId() {
-    const active = document.querySelector('.medhub-tab.active');
+    var active = document.querySelector('.medhub-tab.active');
     return active ? active.dataset.target : 'tabAppointments';
   }
 
   function setActiveTab(id) {
-    tabs.forEach(t => t.classList.toggle('active', t.dataset.target === id));
-    for (const key in panels) {
+    tabs.forEach(function(t) {
+      t.classList.toggle('active', t.dataset.target === id);
+    });
+    for (var key in panels) {
       if (panels[key]) {
         panels[key].classList.toggle('active', key === id);
       }
     }
+    
+    // Reset search
     if (searchInput) {
       searchInput.value = '';
-      filterCurrent('');
-      if (statusEl) statusEl.textContent = 'Showing all items';
+      isSearchActive = false;
+    }
+    
+    // Apply filters based on tab
+    applyFilters(id);
+  }
+
+  // Function to show only first 5 items
+  function showOnlyFirst5(listId) {
+    var list = document.getElementById(listId);
+    if (!list) return;
+    var items = list.querySelectorAll('[data-type]');
+    items.forEach(function(item, idx) {
+      item.style.display = idx < 5 ? '' : 'none';
+    });
+  }
+
+  // Function to show all items
+  function showAllItems(listId) {
+    var list = document.getElementById(listId);
+    if (!list) return;
+    var items = list.querySelectorAll('[data-type]');
+    items.forEach(function(item) {
+      item.style.display = '';
+    });
+  }
+
+  // Apply filters when switching tabs or after filter selection
+  function applyFilters(tabId) {
+    if (isSearchActive) return; // Don't apply if user is searching
+    
+    if (tabId === 'tabRecords') {
+      showOnlyFirst5('recordsList');
+      if (statusEl) statusEl.textContent = 'Showing last 5 records';
+    } else if (tabId === 'tabPrescriptions') {
+      showOnlyFirst5('prescriptionsList');
+      if (statusEl) statusEl.textContent = 'Showing last 5 prescriptions';
+    } else if (tabId === 'tabAppointments') {
+      // Apply the current appointment filter
+      applyAppointmentFilter(currentAppointmentFilter);
     }
   }
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => setActiveTab(tab.dataset.target));
+  // Apply appointment filter
+  function applyAppointmentFilter(filter) {
+    var list = document.getElementById('appointmentsList');
+    if (!list) return;
+    
+    list.querySelectorAll('[data-type="appointment"]').forEach(function(card) {
+      var status = (card.dataset.status || '').toLowerCase();
+      if (filter === 'all') {
+        card.style.display = '';
+      } else if (filter === 'upcoming') {
+        card.style.display = (status === 'scheduled' || status === 'pending') ? '' : 'none';
+      } else if (filter === 'completed') {
+        card.style.display = status === 'completed' ? '' : 'none';
+      }
+    });
+    
+    if (statusEl) {
+      if (filter === 'all') {
+        statusEl.textContent = 'Showing all appointments';
+      } else if (filter === 'upcoming') {
+        statusEl.textContent = 'Showing upcoming appointments';
+      } else if (filter === 'completed') {
+        statusEl.textContent = 'Showing completed appointments';
+      }
+    }
+  }
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      setActiveTab(this.dataset.target);
+    });
   });
 
   function filterCurrent(query) {
-    const q = (query || '').toLowerCase();
-    const activeId = getActivePanelId();
+    var q = (query || '').toLowerCase();
+    var activeId = getActivePanelId();
+    
+    // Mark search as active if there's a query
+    isSearchActive = (q.length > 0);
 
     if (activeId === 'tabAppointments') {
-      const list = document.getElementById('appointmentsList');
+      var list = document.getElementById('appointmentsList');
       if (!list) return;
-      list.querySelectorAll('[data-type="appointment"]').forEach(card => {
-        const text = (card.dataset.text || '').toLowerCase();
-        card.style.display = text.includes(q) ? '' : 'none';
+      list.querySelectorAll('[data-type="appointment"]').forEach(function(card) {
+        var text = (card.dataset.text || '').toLowerCase();
+        card.style.display = text.indexOf(q) > -1 ? '' : 'none';
       });
     } else if (activeId === 'tabRecords') {
-      const list = document.getElementById('recordsList');
+      var list = document.getElementById('recordsList');
       if (!list) return;
-      list.querySelectorAll('[data-type="record"]').forEach(card => {
-        const text = (card.dataset.text || '').toLowerCase();
-        card.style.display = text.includes(q) ? '' : 'none';
-      });
+      var allCards = list.querySelectorAll('[data-type="record"]');
+      
+      if (q.length > 0) {
+        // Search mode: show matching items
+        allCards.forEach(function(card) {
+          var text = (card.dataset.text || '').toLowerCase();
+          card.style.display = text.indexOf(q) > -1 ? '' : 'none';
+        });
+      } else {
+        // No search: show only first 5
+        allCards.forEach(function(card, idx) {
+          card.style.display = idx < 5 ? '' : 'none';
+        });
+      }
     } else if (activeId === 'tabPrescriptions') {
-      const list = document.getElementById('prescriptionsList');
+      var list = document.getElementById('prescriptionsList');
       if (!list) return;
-      list.querySelectorAll('[data-type="prescription"]').forEach(card => {
-        const text = (card.dataset.text || '').toLowerCase();
-        card.style.display = text.includes(q) ? '' : 'none';
-      });
+      var allCards = list.querySelectorAll('[data-type="prescription"]');
+      
+      if (q.length > 0) {
+        // Search mode: show matching items
+        allCards.forEach(function(card) {
+          var text = (card.dataset.text || '').toLowerCase();
+          card.style.display = text.indexOf(q) > -1 ? '' : 'none';
+        });
+      } else {
+        // No search: show only first 5
+        allCards.forEach(function(card, idx) {
+          card.style.display = idx < 5 ? '' : 'none';
+        });
+      }
+    }
+    
+    // Update status if search is cleared
+    if (q.length === 0) {
+      applyFilters(activeId);
     }
   }
 
   if (searchInput) {
     searchInput.addEventListener('input', function() {
       filterCurrent(this.value);
-      if (statusEl) {
-        statusEl.textContent = this.value
-          ? `Filtered by "${this.value}"`
-          : 'Showing all items';
+      if (statusEl && this.value) {
+        statusEl.textContent = 'Filtered by "' + this.value + '"';
       }
     });
   }
@@ -1151,16 +1193,14 @@ document.addEventListener('DOMContentLoaded', function() {
     searchBtn.addEventListener('click', function() {
       if (!searchInput) return;
       filterCurrent(searchInput.value);
-      if (statusEl) {
-        statusEl.textContent = searchInput.value
-          ? `Filtered by "${searchInput.value}"`
-          : 'Showing all items';
+      if (statusEl && searchInput.value) {
+        statusEl.textContent = 'Filtered by "' + searchInput.value + '"';
       }
     });
   }
 
-  const filterToggle = document.getElementById('medhubFilterToggle');
-  const filterMenu = document.getElementById('medhubFilterMenu');
+  var filterToggle = document.getElementById('medhubFilterToggle');
+  var filterMenu = document.getElementById('medhubFilterMenu');
 
   if (filterToggle && filterMenu) {
     filterToggle.addEventListener('click', function(e) {
@@ -1175,58 +1215,23 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    filterMenu.querySelectorAll('.medhub-filter-option').forEach(btn => {
+    filterMenu.querySelectorAll('.medhub-filter-option').forEach(function(btn) {
       btn.addEventListener('click', function(e) {
         e.preventDefault();
-        const type = this.dataset.type;
-        const filter = this.dataset.filter;
+        var type = this.dataset.type;
+        var filter = this.dataset.filter;
 
-        const menu = this.closest('.medhub-filter-menu') || filterMenu;
-        menu.querySelectorAll(`.medhub-filter-option[data-type="${type}"]`)
-            .forEach(o => o.classList.remove('active'));
+        var menu = this.closest('.medhub-filter-menu') || filterMenu;
+        menu.querySelectorAll('.medhub-filter-option[data-type="' + type + '"]').forEach(function(o) {
+          o.classList.remove('active');
+        });
         this.classList.add('active');
 
+        // Only handle appointments filter
         if (type === 'appointments') {
-          const list = document.getElementById('appointmentsList');
-          if (!list) return;
-          list.querySelectorAll('[data-type="appointment"]').forEach(card => {
-            const status = (card.dataset.status || '').toLowerCase();
-            if (filter === 'all') {
-              card.style.display = '';
-            } else if (filter === 'upcoming') {
-              card.style.display = (status === 'scheduled' || status === 'pending') ? '' : 'none';
-            } else if (filter === 'completed') {
-              card.style.display = status === 'completed' ? '' : 'none';
-            }
-          });
-          if (statusEl) statusEl.textContent = `Appointments filter: ${this.textContent.trim()}`;
-          setActiveTab('tabAppointments');
-        } else if (type === 'records') {
-          const list = document.getElementById('recordsList');
-          if (!list) return;
-          const cards = Array.from(list.querySelectorAll('[data-type="record"]'));
-          cards.forEach((card, idx) => {
-            if (filter === 'recent') {
-              card.style.display = idx < 5 ? '' : 'none';
-            } else {
-              card.style.display = '';
-            }
-          });
-          if (statusEl) statusEl.textContent = `Records filter: ${this.textContent.trim()}`;
-          setActiveTab('tabRecords');
-        } else if (type === 'prescriptions') {
-          const list = document.getElementById('prescriptionsList');
-          if (!list) return;
-          const cards = Array.from(list.querySelectorAll('[data-type="prescription"]'));
-          cards.forEach((card, idx) => {
-            if (filter === 'recent') {
-              card.style.display = idx < 5 ? '' : 'none';
-            } else {
-              card.style.display = '';
-            }
-          });
-          if (statusEl) statusEl.textContent = `Prescriptions filter: ${this.textContent.trim()}`;
-          setActiveTab('tabPrescriptions');
+          currentAppointmentFilter = filter; // Save the selected filter
+          applyAppointmentFilter(filter);
+          setActiveTab('tabAppointments'); // Switch to appointments tab
         }
 
         filterMenu.classList.remove('show');
@@ -1234,7 +1239,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Initialize with first tab
   setActiveTab('tabAppointments');
-});
+  
+  // Apply default 5-item limit for records and prescriptions on page load
+  showOnlyFirst5('recordsList');
+  showOnlyFirst5('prescriptionsList');
+}
 </script>
 {% endblock %}

@@ -26,32 +26,32 @@
 
   <!-- Stats Cards Row -->
   <div class="stats-row">
-    <div class="stat-box stat-admins">
+    <div class="stat-box">
       <div class="stat-label">ADMINS</div>
       <div class="stat-number">{{ total_admins|default:0 }}</div>
       <div class="stat-change {{ admins_growth_class }}">{{ admins_growth_pct }}% {{ admins_growth_icon }}</div>
     </div>
-    <div class="stat-box stat-doctors">
+    <div class="stat-box">
       <div class="stat-label">DOCTORS</div>
       <div class="stat-number">{{ active_doctors|default:0 }}</div>
       <div class="stat-change {{ doctors_growth_class }}">{{ doctors_growth_pct }}% {{ doctors_growth_icon }}</div>
     </div>
-    <div class="stat-box stat-receptionists">
+    <div class="stat-box">
       <div class="stat-label">RECEPTIONISTS</div>
       <div class="stat-number">{{ total_receptionists|default:0 }}</div>
       <div class="stat-change {{ receptionists_growth_class }}">{{ receptionists_growth_pct }}% {{ receptionists_growth_icon }}</div>
     </div>
-    <div class="stat-box stat-patients">
+    <div class="stat-box">
       <div class="stat-label">PATIENTS</div>
       <div class="stat-number">{{ total_patients|default:0 }}</div>
       <div class="stat-change {{ patients_growth_class }}">{{ patients_growth_pct }}% {{ patients_growth_icon }}</div>
     </div>
-    <div class="stat-box stat-appointments">
+    <div class="stat-box">
       <div class="stat-label">APPOINTMENTS</div>
       <div class="stat-number">{{ total_appointments|default:0 }}</div>
       <div class="stat-change {{ appointments_growth_class }}">{{ appointments_growth_pct }}% {{ appointments_growth_icon }}</div>
     </div>
-    <div class="stat-box stat-today">
+    <div class="stat-box">
       <div class="stat-label">TODAY'S APPOINTMENTS</div>
       <div class="stat-number">{{ today_appointments_count|default:0 }}</div>
       <div class="stat-change {{ today_growth_class }}">{{ today_appointments_growth_pct }}% {{ today_growth_icon }}</div>
@@ -136,49 +136,49 @@
         <div class="beneficiary-bars-list">
           <div class="beneficiary-bar-row">
             <span class="b-label">Admins</span>
-            <div class="b-bar-bg bar-purple">
-              <div class="b-bar-fill bar-purple" style="width: {% widthratio total_admins 10 100 %}%;"></div>
-              <span class="b-nums b-purple">{{ total_admins|default:0 }}/10</span>
+            <div class="b-bar-bg">
+              <div class="b-bar-fill" style="width: {% widthratio total_admins 10 100 %}%;"></div>
+              <span class="b-nums">{{ total_admins|default:0 }}/10</span>
             </div>
           </div>
 
           <div class="beneficiary-bar-row">
             <span class="b-label">Doctors</span>
-            <div class="b-bar-bg bar-blue">
-              <div class="b-bar-fill bar-blue" style="width: {% widthratio active_doctors 20 100 %}%;"></div>
-              <span class="b-nums b-blue">{{ active_doctors|default:0 }}/20</span>
+            <div class="b-bar-bg">
+              <div class="b-bar-fill" style="width: {% widthratio active_doctors 20 100 %}%;"></div>
+              <span class="b-nums">{{ active_doctors|default:0 }}/20</span>
             </div>
           </div>
 
           <div class="beneficiary-bar-row">
             <span class="b-label">Receptionists</span>
-            <div class="b-bar-bg bar-orange">
-              <div class="b-bar-fill bar-orange" style="width: {% widthratio total_receptionists 15 100 %}%;"></div>
-              <span class="b-nums b-orange">{{ total_receptionists|default:0 }}/15</span>
+            <div class="b-bar-bg">
+              <div class="b-bar-fill" style="width: {% widthratio total_receptionists 15 100 %}%;"></div>
+              <span class="b-nums">{{ total_receptionists|default:0 }}/15</span>
             </div>
           </div>
 
           <div class="beneficiary-bar-row">
             <span class="b-label">Patients</span>
-            <div class="b-bar-bg bar-green">
-              <div class="b-bar-fill bar-green" style="width: {% widthratio total_patients 100 100 %}%;"></div>
-              <span class="b-nums b-green">{{ total_patients|default:0 }}/100</span>
+            <div class="b-bar-bg">
+              <div class="b-bar-fill" style="width: {% widthratio total_patients 100 100 %}%;"></div>
+              <span class="b-nums">{{ total_patients|default:0 }}/100</span>
             </div>
           </div>
 
           <div class="beneficiary-bar-row">
             <span class="b-label">Appointments</span>
-            <div class="b-bar-bg bar-teal">
-              <div class="b-bar-fill bar-teal" style="width: {% widthratio total_appointments 200 100 %}%;"></div>
-              <span class="b-nums b-teal">{{ total_appointments|default:0 }}/200</span>
+            <div class="b-bar-bg">
+              <div class="b-bar-fill" style="width: {% widthratio total_appointments 200 100 %}%;"></div>
+              <span class="b-nums">{{ total_appointments|default:0 }}/200</span>
             </div>
           </div>
 
           <div class="beneficiary-bar-row">
             <span class="b-label">Today</span>
-            <div class="b-bar-bg bar-today">
-              <div class="b-bar-fill bar-today" style="width: {% widthratio today_appointments_count 40 100 %}%;"></div>
-              <span class="b-nums b-today">{{ today_appointments_count|default:0 }}/40</span>
+            <div class="b-bar-bg">
+              <div class="b-bar-fill" style="width: {% widthratio today_appointments_count 40 100 %}%;"></div>
+              <span class="b-nums">{{ today_appointments_count|default:0 }}/40</span>
             </div>
           </div>
         </div>
@@ -290,7 +290,7 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-left: 5px solid #ddd;
+  border-left: 6px solid #e5e7eb;
 }
 
 .stat-box:hover {
@@ -302,7 +302,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.6px;
-  color: #999;
+  color: #9ca3af;
   margin-bottom: 10px;
   text-transform: uppercase;
 }
@@ -311,6 +311,7 @@
   font-size: 40px;
   font-weight: 800;
   margin-bottom: 8px;
+  color: #6b7280 !important;
 }
 
 .stat-change {
@@ -319,6 +320,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  color: #6b7280;
 }
 
 .stat-change.positive {
@@ -343,54 +345,52 @@
   font-weight: 600;
 }
 
-.stat-admins { border-left-color: #6a1b9a; }
-.stat-admins .stat-number { color: #4a148c; }
 
-.stat-doctors { border-left-color: #1976d2; }
-.stat-doctors .stat-number { color: #0d47a1; }
+  /* Stats Row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 18px;
+  padding: 0 20px 24px;
+}
 
-.stat-receptionists { border-left-color: #f57c00; }
-.stat-receptionists .stat-number { color: #e65100; }
+.stat-box {
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  border-left: 4px solid #d1d5db;      /* soft gray accent */
+  transition: all 0.25s ease;
+}
 
-.stat-patients { border-left-color: #388e3c; }
-.stat-patients .stat-number { color: #2e7d32; }
+.stat-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  border-left-color: #6b7280;          /* slightly darker gray on hover */
+}
 
-.stat-appointments { border-left-color: #52ddeaff; }
-.stat-appointments .stat-number { color: #07d6c5ff; }
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #6b7280;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
 
-.stat-today { border-left-color: #d10202ff; }
-.stat-today .stat-number { color: #d91212ff; }
+.stat-number {
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: #6b7280                      /* same for all */
+}
 
-/* Admins – matches .stat-admins */
-.b-bar-bg.bar-purple { background: #e1bee7; }
-.b-bar-fill.bar-purple { background: #6a1b9a; }
-.b-purple { color: #4a148c; }
+.stat-change {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
 
-/* Doctors – matches .stat-doctors */
-.b-bar-bg.bar-blue { background: #bbdefb; }
-.b-bar-fill.bar-blue { background: #1976d2; }
-.b-blue { color: #0d47a1; }
-
-/* Receptionists – matches .stat-receptionists */
-.b-bar-bg.bar-orange { background: #ffe0b2; }
-.b-bar-fill.bar-orange { background: #f57c00; }
-.b-orange { color: #e65100; }
-
-/* Patients – matches .stat-patients */
-.b-bar-bg.bar-green { background: #c8e6c9; }
-.b-bar-fill.bar-green { background: #388e3c; }
-.b-green { color: #2e7d32; }
-
-/* Appointments – matches .stat-appointments */
-.stat-appointments { border-left-color: #06b6d4; }
-.stat-appointments .stat-number { color: #0891b2; }
-.b-teal { color: #a7f3f0; }
-
-/* Today – keep separate highlight color */
-.b-bar-bg.bar-today { background: #fcb3b3ff; }
-.b-bar-fill.bar-today { background: #df0808ff; }
-.b-today { color: #cf0505ff; }
-  
 
 /* Analytics Section */
 .analytics-section {
@@ -454,6 +454,99 @@
   align-items: center;
   margin-bottom: 18px;
 }
+/* Total Beneficiaries Card */
+.beneficiaries-card {
+  background: white;
+  border-radius: 12px;
+  padding: 26px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s;
+}
+
+.beneficiaries-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.card-header-section h2 {
+  font-size: 19px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.badge-current {
+  background: #f3f4f6;
+  color: #6b7280;
+  padding: 6px 14px;
+  border-radius: 13px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.beneficiary-bars-list {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.beneficiary-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.b-label {
+  min-width: 120px;
+  font-size: 1.06rem;
+  color: #374151;
+  font-weight: 560;
+  text-align: left;
+}
+
+/* Unified gray bar background */
+.b-bar-bg {
+  position: relative;
+  flex: 1 1 auto;
+  background: #e5e7eb;
+  height: 19px;
+  border-radius: 9px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+/* Unified gray bar fill */
+.b-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: #9ca3af;
+  border-radius: 9px;
+}
+
+/* Unified text color for numbers */
+.b-nums {
+  position: absolute;
+  right: 12px;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: #111827;
+}
+
 
 .chart-title {
   display: flex;
@@ -561,16 +654,23 @@
   padding: 0 20px 40px;
 }
 
+:root {
+  --brand: #00bcd4;
+  --brand-dark: #00acc1;
+  --brand-light: #80deea;
+}
+
+/* Total Beneficiaries Card */
 .beneficiaries-card {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   padding: 26px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
   transition: all 0.3s;
 }
 
 .beneficiaries-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
 }
 
 .card-header-section {
@@ -579,7 +679,7 @@
   align-items: center;
   margin-bottom: 22px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .card-header-section h2 {
@@ -589,13 +689,12 @@
 }
 
 .badge-current {
-  background: #e0f7fa;
-  color: #00acc1;
+  background: var(--brand-light);
+  color: var(--brand-dark);
   padding: 6px 14px;
   border-radius: 13px;
   font-size: 12px;
   font-weight: 700;
-  margin-left: 6px;
 }
 
 .beneficiary-bars-list {
@@ -614,17 +713,18 @@
 .b-label {
   min-width: 120px;
   font-size: 1.06rem;
-  color: #21262d;
+  color: #111827;
   font-weight: 560;
   text-align: left;
 }
 
+/* Unified brand-based bar styling */
 .b-bar-bg {
   position: relative;
   flex: 1 1 auto;
-  background: #f0f7fa;
+  background: var(--brand-light);     /* light cyan track */
   height: 19px;
-  border-radius: 9px;
+  border-radius: 999px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -632,40 +732,24 @@
 
 .b-bar-fill {
   position: absolute;
-  left: 0; top: 0; height: 100%;
-  border-radius: 9px;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--brand);           /* main brand color */
+  border-radius: 999px;
 }
 
-/* Background colors for beneficiary bars */
-.bar-purple  { background: #e1bee7 !important; }
-.bar-blue    { background: #bbdefb !important; }
-.bar-orange  { background: #ffe0b2 !important; }
-.bar-green   { background: #c8e6c9 !important; }
-.bar-teal    { background: #a7f3f0 !important; }
-.bar-today   { background: #f5cdcdff !important; }
-/* Fill colors for beneficiary bars */
-.b-bar-fill.bar-purple  { background: #6a1b9a !important;; }
-.b-bar-fill.bar-blue    { background: #1976d2 !important;; }
-.b-bar-fill.bar-orange  { background: #f57c00 !important;; }
-.b-bar-fill.bar-green   { background: #388e3c !important;; }
-.b-bar-fill.bar-teal    { background: #06b6d4 !important;; }
-.b-bar-fill.bar-today   { background: #c70b0bff !important;; }
-/* Text colors for numbers on beneficiary bars */
-.b-purple { color: #4a148c !important; }
-.b-blue   { color: #0d47a1 !important; }
-.b-orange { color: #e65100 !important; }
-.b-green  { color: #2e7d32 !important; }
-.b-teal   { color: #0891b2 !important; }
-.b-today  { color: #b60303ff !important; }
-
-/* Positioning and font styling for numbers on bars */
+/* Numbers on bars */
 .b-nums {
   position: absolute;
   right: 12px;
-  top: 0; height: 100%;
-  display: flex; align-items: center;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
   font-weight: 700;
   font-size: 1.02rem;
+  color: #0f172a;                     /* dark text, good contrast */
 }
 
 /* Responsive Design */
@@ -820,13 +904,7 @@
   }
 }
 
-/* Additional Colors for Receptionists */
-.stat-receptionists { border-left-color: #ff9800; }
-.stat-receptionists .stat-number { color: #f57c00; }
 
-.b-bar-bg.bar-green { background: #ffcdcdff; }
-.b-bar-fill.bar-green { background: #ff0707ff; }
-.b-green { color: #ff9800; }
 </style>
 
 <!-- Pass Django data to JavaScript -->

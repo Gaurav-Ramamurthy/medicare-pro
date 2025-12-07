@@ -517,12 +517,15 @@ input:focus, textarea:focus {
             {% endif %}
           </p>
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <a href="{% url 'patient_detail' patient.id %}" class="btn-custom btn-outline-custom">← Back</a>
-          {% if is_doctor %}
-          <button type="button" class="btn-custom btn-primary-custom" onclick="openPrescriptionModal()">Add Prescription</button>
-          {% endif %}
-        </div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+  <a href="#" id="back-btn" class="btn-custom btn-outline-custom">← Back</a>
+  {% if is_doctor %}
+    <button type="button" class="btn-custom btn-primary-custom" id="open-prescription-btn">
+      Add Prescription
+    </button>
+  {% endif %}
+</div>
+
       </div>
 
       <!-- Upload medical record -->
@@ -749,105 +752,230 @@ input:focus, textarea:focus {
 </div>
 {% endif %}
 {% endblock %}
+
 {% block extra_js %}
 <script>
-// Toggle extra note textarea
-function toggleNoteField() {
-  const wrapper = document.getElementById('noteTextWrapper');
-  const btn = document.getElementById('toggleNoteBtn');
-  if (!wrapper || !btn) return;
-  if (wrapper.classList.contains('active')) {
-    wrapper.classList.remove('active');
-    btn.textContent = 'Add additional note';
-  } else {
-    wrapper.classList.add('active');
-    btn.textContent = 'Hide additional note';
-  }
-}
-
-// File preview
-const attachmentInput = document.getElementById('id_attachment');
-if (attachmentInput) {
-  attachmentInput.addEventListener('change', function (e) {
-    const fileInput = e.target;
-    const preview = document.getElementById('filePreview');
-    if (!preview) return;
-    preview.innerHTML = '';
-    if (!fileInput.files || !fileInput.files[0]) {
-      preview.style.display = 'none';
-      return;
-    }
-    const file = fileInput.files[0];
-    const ext = file.name.split('.').pop().toLowerCase();
-    const url = URL.createObjectURL(file);
-
-    if (['jpg', 'jpeg', 'png'].includes(ext)) {
-      const img = document.createElement('img');
-      img.src = url;
-      preview.appendChild(img);
-    } else if (ext === 'pdf') {
-      const frame = document.createElement('iframe');
-      frame.src = url;
-      preview.appendChild(frame);
-    }
-    preview.style.display = 'block';
-  });
-}
-
-// Record row click
-function attachRecordRowClicks() {
-  document.querySelectorAll('#recordsList .record-row').forEach(row => {
-    const url = row.getAttribute('data-file-url');
-    if (!url) return;
-    row.addEventListener('click', function () {
-      window.open(url, '_blank', 'noopener');
+// Run after DOM is ready
+document.addEventListener('DOMContentLoaded', function () {
+  // ===== SMART BACK BUTTON (works for all roles) =====
+  const backBtn = document.getElementById('back-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      {% if user.is_authenticated and (user.role == 'admin' or user.role == 'receptionist') %}
+        window.location.href = "{% url 'patient_list' %}";
+      {% else %}
+        window.history.back();
+      {% endif %}
     });
-  });
-}
-attachRecordRowClicks();
-
-// Switch tabs
-function switchRecordsTab(tab) {
-  const records = document.getElementById('recordsSection');
-  const presc = document.getElementById('prescriptionsSection');
-  const pills = document.querySelectorAll('.tab-pill');
-  pills.forEach(p => p.classList.remove('active'));
-  if (tab === 'records') {
-    records.style.display = 'block';
-    presc.style.display = 'none';
-    pills[0].classList.add('active');
-  } else {
-    records.style.display = 'none';
-    presc.style.display = 'block';
-    pills[1].classList.add('active');
   }
-}
 
-// Modal
+  // ===== ADD PRESCRIPTION BUTTON (doctors only) =====
+  const addBtn = document.getElementById('open-prescription-btn');
+  if (addBtn) {
+    addBtn.addEventListener('click', function () {
+      openPrescriptionModal();
+    });
+  }
+
+  // ===== TOGGLE EXTRA NOTE TEXTAREA =====
+  const toggleNoteBtn = document.getElementById('toggleNoteBtn');
+  const noteWrapper = document.getElementById('noteTextWrapper');
+  if (toggleNoteBtn && noteWrapper) {
+    toggleNoteBtn.addEventListener('click', function () {
+      noteWrapper.classList.toggle('active');
+      toggleNoteBtn.textContent = noteWrapper.classList.contains('active')
+        ? 'Hide additional note'
+        : 'Add additional note';
+    });
+  }
+
+  // ===== FILE PREVIEW =====
+  const attachmentInput = document.getElementById('id_attachment');
+  if (attachmentInput) {
+    attachmentInput.addEventListener('change', function (e) {
+      const fileInput = e.target;
+      const preview = document.getElementById('filePreview');
+      if (!preview) return;
+      preview.innerHTML = '';
+      if (!fileInput.files || !fileInput.files[0]) {
+        preview.style.display = 'none';
+        return;
+      }
+      const file = fileInput.files[0];
+      const ext = file.name.split('.').pop().toLowerCase();
+      const url = URL.createObjectURL(file);
+
+      if (['jpg', 'jpeg', 'png'].includes(ext)) {
+        const img = document.createElement('img');
+        img.src = url;
+        preview.appendChild(img);
+      } else if (ext === 'pdf') {
+        const frame = document.createElement('iframe');
+        frame.src = url;
+        preview.appendChild(frame);
+      }
+      preview.style.display = 'block';
+    });
+  }
+
+  // ===== RECORD ROW CLICK (open attachment) =====
+  const recordsList = document.getElementById('recordsList');
+  if (recordsList) {
+    recordsList.querySelectorAll('.record-row').forEach(row => {
+      const url = row.getAttribute('data-file-url');
+      if (!url) return;
+      row.addEventListener('click', function () {
+        window.open(url, '_blank', 'noopener');
+      });
+    });
+  }
+
+  // ===== TABS: RECORDS / PRESCRIPTIONS =====
+  function switchRecordsTab(tab) {
+    const records = document.getElementById('recordsSection');
+    const presc = document.getElementById('prescriptionsSection');
+    const pills = document.querySelectorAll('.tab-pill');
+    if (!records || !pills.length) return;
+
+    pills.forEach(p => p.classList.remove('active'));
+
+    if (tab === 'prescriptions' && presc) {
+      records.style.display = 'none';
+      presc.style.display = 'block';
+      if (pills[1]) pills[1].classList.add('active');
+    } else {
+      records.style.display = 'block';
+      if (presc) presc.style.display = 'none';
+      if (pills[0]) pills[0].classList.add('active');
+    }
+  }
+  window.switchRecordsTab = switchRecordsTab; // expose to inline onclick
+
+  // ===== SEARCH =====
+  function performSearch() {
+    const input = document.getElementById('searchInput');
+    if (!input) return;
+    const term = input.value.toLowerCase();
+    [['recordsList','.record-row'], ['prescriptionList','.prescription-card']].forEach(([id, sel]) => {
+      const container = document.getElementById(id);
+      if (!container) return;
+      container.querySelectorAll(sel).forEach(row => {
+        const data = (row.getAttribute('data-search') || '').toLowerCase();
+        row.style.display = data.includes(term) ? '' : 'none';
+      });
+    });
+  }
+  const searchInputEl = document.getElementById('searchInput');
+  if (searchInputEl) searchInputEl.addEventListener('keyup', performSearch);
+  const searchBtn = document.querySelector('.btn-search-records');
+  if (searchBtn) searchBtn.addEventListener('click', performSearch);
+
+  // ===== SORT (FILTER DROPDOWN) =====
+  function sortContainer(containerId, selector, order) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const rows = Array.from(container.querySelectorAll(selector));
+    rows.sort((a, b) => {
+      const ta = parseInt(a.getAttribute('data-created')) || 0;
+      const tb = parseInt(b.getAttribute('data-created')) || 0;
+      return order === 'newest' ? tb - ta : ta - tb;
+    });
+    rows.forEach(r => container.appendChild(r));
+  }
+
+  const filterToggle = document.getElementById('filterToggle');
+  const filterMenu = document.getElementById('filterMenu');
+  if (filterToggle && filterMenu) {
+    filterToggle.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      filterMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('click', e => {
+      if (!filterMenu.contains(e.target) && !filterToggle.contains(e.target)) {
+        filterMenu.classList.remove('show');
+      }
+    });
+
+    filterMenu.querySelectorAll('.filter-option').forEach(option => {
+      option.addEventListener('click', e => {
+        e.preventDefault();
+        filterMenu.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
+        option.classList.add('active');
+        const sort = option.getAttribute('data-sort') || 'newest';
+        sortContainer('recordsList', '.record-row', sort);
+        sortContainer('prescriptionList', '.prescription-card', sort);
+        filterMenu.classList.remove('show');
+      });
+    });
+  }
+
+  // ===== PRESCRIPTION COUNTDOWN (doctors only) =====
+  function initPrescriptionCountdown() {
+    const btns = document.querySelectorAll('.prescription-edit-btn');
+    if (!btns.length) return;
+    const items = [];
+    btns.forEach(btn => {
+      const row = btn.closest('.prescription-card');
+      if (!row) return;
+      const created = parseInt(row.getAttribute('data-created'));
+      if (!created) return;
+      items.push({btn, created, labelId: 'timer-' + btn.dataset.prescriptionId});
+    });
+    if (!items.length) return;
+
+    function tick() {
+      const current = Math.floor(Date.now() / 1000);
+      items.forEach(item => {
+        const remaining = 5 * 60 - (current - item.created);
+        const label = document.getElementById(item.labelId);
+        if (remaining <= 0) {
+          item.btn.style.display = 'none';
+          if (label) label.textContent = '';
+          return;
+        }
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        if (label) label.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      });
+    }
+    tick();
+    setInterval(tick, 1000);
+  }
+  initPrescriptionCountdown();
+});
+
+// ===== MODAL FUNCTIONS (global so buttons can call them) =====
 function openPrescriptionModal() {
   const modal = document.getElementById('prescriptionModal');
   if (!modal) return;
   modal.classList.add('show');
-  document.getElementById('prescriptionModalTitle').textContent = 'Add prescription';
-  document.getElementById('prescriptionForm').reset();
-  document.getElementById('id_prescription_id').value = '';
-  document.getElementById('prescriptionSubmitBtn').textContent = 'Save prescription';
-  const firstInput = document.getElementById('id_medication_name');
-  if (firstInput) firstInput.focus();
+  const title = document.getElementById('prescriptionModalTitle');
+  if (title) title.textContent = 'Add prescription';
+  const form = document.getElementById('prescriptionForm');
+  if (form) form.reset();
+  const idField = document.getElementById('id_prescription_id');
+  if (idField) idField.value = '';
+  const btn = document.getElementById('prescriptionSubmitBtn');
+  if (btn) btn.textContent = 'Save prescription';
 }
 
 function openPrescriptionEdit(id, name, dosage, frequency, duration, instructions) {
   const modal = document.getElementById('prescriptionModal');
   if (!modal) return;
   modal.classList.add('show');
-  document.getElementById('prescriptionModalTitle').textContent = 'Edit prescription';
+  const title = document.getElementById('prescriptionModalTitle');
+  if (title) title.textContent = 'Edit prescription';
   document.getElementById('id_prescription_id').value = id;
   document.getElementById('id_medication_name').value = name;
   document.getElementById('id_dosage').value = dosage;
   document.getElementById('id_frequency').value = frequency;
   document.getElementById('id_duration').value = duration;
   document.getElementById('id_instructions').value = instructions || '';
-  document.getElementById('prescriptionSubmitBtn').textContent = 'Update prescription';
+  const btn = document.getElementById('prescriptionSubmitBtn');
+  if (btn) btn.textContent = 'Update prescription';
 }
 
 function closePrescriptionModal() {
@@ -855,118 +983,5 @@ function closePrescriptionModal() {
   if (!modal) return;
   modal.classList.remove('show');
 }
-
-window.addEventListener('click', function (e) {
-  const modal = document.getElementById('prescriptionModal');
-  if (modal && e.target === modal) {
-    closePrescriptionModal();
-  }
-});
-
-// Search
-function performSearch() {
-  const term = document.getElementById('searchInput').value.toLowerCase();
-  [['recordsList','.record-row'], ['prescriptionList','.prescription-card']].forEach(([id, sel]) => {
-    const container = document.getElementById(id);
-    if (!container) return;
-    container.querySelectorAll(sel).forEach(row => {
-      const data = (row.getAttribute('data-search') || '').toLowerCase();
-      row.style.display = data.includes(term) ? '' : 'none';
-    });
-  });
-}
-document.getElementById('searchInput').addEventListener('keyup', performSearch);
-
-// Sort
-function sortContainer(containerId, selector, order) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const rows = Array.from(container.querySelectorAll(selector));
-  rows.sort(function (a, b) {
-    const ta = parseInt(a.getAttribute('data-created')) || 0;
-    const tb = parseInt(b.getAttribute('data-created')) || 0;
-    return order === 'newest' ? tb - ta : ta - tb;
-  });
-  rows.forEach(r => container.appendChild(r));
-}
-
-// Filter dropdown
-const filterToggle = document.getElementById('filterToggle');
-const filterMenu = document.getElementById('filterMenu');
-
-if (filterToggle && filterMenu) {
-  filterToggle.addEventListener('click', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    filterMenu.classList.toggle('show');
-  });
-
-  document.addEventListener('click', e => {
-    if (!filterMenu.contains(e.target) && !filterToggle.contains(e.target)) {
-      filterMenu.classList.remove('show');
-    }
-  });
-
-  filterMenu.querySelectorAll('.filter-option').forEach(option => {
-    option.addEventListener('click', e => {
-      e.preventDefault();
-      filterMenu.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
-      option.classList.add('active');
-      const sort = option.getAttribute('data-sort') || 'newest';
-      sortContainer('recordsList', '.record-row', sort);
-      sortContainer('prescriptionList', '.prescription-card', sort);
-      filterMenu.classList.remove('show');
-    });
-  });
-}
-
-// Countdown timer for prescription edit
-function initPrescriptionCountdown() {
-  const now = Math.floor(Date.now() / 1000);
-  const btns = document.querySelectorAll('.prescription-edit-btn');
-  if (!btns.length) return;
-
-  const items = [];
-  btns.forEach(btn => {
-    const row = btn.closest('.prescription-card');
-    if (!row) return;
-    const created = parseInt(row.getAttribute('data-created'));
-    if (!created) return;
-    const totalWindow = 5 * 60;
-    const elapsed = now - created;
-    let remaining = totalWindow - elapsed;
-    if (remaining <= 0) {
-      btn.style.display = 'none';
-      const label = document.getElementById('timer-' + btn.dataset.prescriptionId);
-      if (label) label.textContent = '';
-      return;
-    }
-    items.push({btn, created, labelId: 'timer-' + btn.dataset.prescriptionId});
-  });
-
-  if (!items.length) return;
-
-  function tick() {
-    const current = Math.floor(Date.now() / 1000);
-    items.forEach(item => {
-      const elapsed = current - item.created;
-      const remaining = 5 * 60 - elapsed;
-      const label = document.getElementById(item.labelId);
-      if (remaining <= 0) {
-        item.btn.style.display = 'none';
-        if (label) label.textContent = '';
-        return;
-      }
-      const m = Math.floor(remaining / 60);
-      const s = remaining % 60;
-      if (label) {
-        label.textContent = `${m}:${s.toString().padStart(2,'0')}`;
-      }
-    });
-  }
-  tick();
-  setInterval(tick, 1000);
-}
-initPrescriptionCountdown();
 </script>
 {% endblock %}

@@ -37,8 +37,6 @@
   .btn-back {
     padding: 10px 20px;
     background: #fff;
-    color: #00bcd4;
-    border: 2px solid #00bcd4;
     border-radius: 8px;
     font-weight: 600;
     font-size: 0.9rem;
@@ -49,8 +47,6 @@
   }
 
   .btn-back:hover {
-    background: #00bcd4;
-    color: #fff;
     transform: translateY(-1px);
   }
 
@@ -200,10 +196,10 @@
   }
 
     .btn-filter-toggle svg {
-    width: 20px !important;
-    height: 20px !important;
-    flex-shrink: 0;
-    display: block;
+        width: 20px !important;
+        height: 20px !important;
+        flex-shrink: 0;
+        display: block;
     }
   .filter-menu .filter-option.active {
     background: #e0f2fe;
@@ -763,6 +759,27 @@
   .toast-error { background: #e40b0bff; }
   .toast-warning { background: #f59e0b; }
   .toast-info { background: #3b82f6; }
+  .btn-custom {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 2px solid;
+  transition: all 0.2s;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.btn-outline-custom {
+  background: #fff;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+.btn-outline-custom:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
 </style>
 {% endblock %}
 
@@ -770,7 +787,7 @@
 <div class="queries-wrapper">
   <div class="queries-header">
     <h2>Contact Queries ({{ queries.count }})</h2>
-    <a href="{% url 'admin_dashboard' %}#contact" class="btn-back" aria-label="Go back to landing page">← Dashboard</a>
+    <a href="{% url 'admin_dashboard' %}#contact" class="btn-custom btn-outline-custom" aria-label="Go back to landing page">← Dashboard</a>
   </div>
 
   <form id="queries-search-form" method="get" action="" class="search-card" autocomplete="off" aria-label="Search and filter contact queries">
