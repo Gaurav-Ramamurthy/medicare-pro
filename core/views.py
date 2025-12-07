@@ -4,7 +4,7 @@ import logging
 import secrets
 from datetime import timedelta
 from functools import wraps
-import imghdr
+
 
 
 from django.conf import settings
