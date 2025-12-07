@@ -26,7 +26,7 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-secret')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 CSRF_TRUSTED_ORIGINS = [
     'https://medicare-pro-7130.onrender.com',
@@ -41,6 +41,16 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
 ]
+
+
+# Render Proxy (Cloudflare)
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
+# HTTPS Security
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 #day 5 - add login redirect URL
 LOGIN_URL = "/login/"
