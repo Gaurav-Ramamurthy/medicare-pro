@@ -1,7 +1,7 @@
 import datetime
 import uuid
 import re
-import imghdr
+
 
 from django import forms
 from django.conf import settings
