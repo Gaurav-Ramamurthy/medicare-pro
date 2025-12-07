@@ -1,9 +1,9 @@
 DB_ENGINE=django.db.backends.postgresql
-DB_NAME=34dcf95746cb84ba907c306977f3497a
-DB_USER=b073bc7c23e2a844ef65e16fa4c851c8
-DB_PASSWORD=6d5fe0d784505efb535a08069af7b11f
-DB_HOST=2d0d719dbe2e9d30b89f59f04352d005
-DB_PORT=12851cd86a523620b72b954837d725a7
+DB_NAME=medicare_pro_db_g8y7
+DB_USER=medicare_pro_db_g8y7_user
+DB_PASSWORD=kmLBPr37OPwXJPZhA2FsSG0YKkXC1icz
+DB_HOST=dpg-d4qqb5ili9vc73a2jm70-a
+DB_PORT=5432
 DEBUG=False
 EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
 EMAIL_HOST=smtp.gmail.com

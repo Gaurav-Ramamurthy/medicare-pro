@@ -439,7 +439,7 @@ def logout_view(request):
 # === PUBLIC PAGES ===
 def home(request):
     """Home page."""
-    return render(request, 'core/home.html')
+    return render(request, 'core/landing_page.html')
 
 
 def landing_page(request):
