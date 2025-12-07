@@ -28,7 +28,7 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://medicare-pro-1-rd76.onrender.com']
+ALLOWED_HOSTS = ['https://medicare-pro-1-rd76.onrender.com', '']
 
 #day 5 - add login redirect URL
 LOGIN_URL = "/login/"
@@ -102,6 +102,7 @@ DATABASES = {
         "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
