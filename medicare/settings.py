@@ -28,10 +28,15 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    'medicare-pro-7130.onrender.com',
+CSRF_TRUSTED_ORIGINS = [
     'https://medicare-pro-7130.onrender.com',
     'http://medicare-pro-7130.onrender.com',
+]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
+ALLOWED_HOSTS = [
+    'medicare-pro-7130.onrender.com',
     'www.medicare-pro-7130.onrender.com',
     'localhost',
     '127.0.0.1',
