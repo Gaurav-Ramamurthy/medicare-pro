@@ -30,6 +30,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'medicare-pro-7130.onrender.com',
+    'https://medicare-pro-7130.onrender.com',
+    'http://medicare-pro-7130.onrender.com',
     'www.medicare-pro-7130.onrender.com',
     'localhost',
     '127.0.0.1',
