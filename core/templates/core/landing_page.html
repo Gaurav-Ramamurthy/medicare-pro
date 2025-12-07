@@ -2,33 +2,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+  <link rel="icon" type="image/png" href="{% static 'logo2.0.png' %}">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MediCare Pro - Healthcare Management System</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       line-height: 1.6;
       color: #333;
+      scroll-behavior: smooth;
     }
 
     /* NAVIGATION */
     .navbar {
       background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
-      padding: 1rem 0;
+      padding: 0.9rem 0;
       position: sticky;
       top: 0;
       z-index: 1000;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-
     .nav-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -36,19 +32,44 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 1rem;
     }
 
-    .logo {
-      color: white;
-      font-size: 1.5rem;
-      font-weight: 700;
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       text-decoration: none;
     }
-
-    .logo span {
+    .brand-logo-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+    .brand-logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      color: #ffffff;
+    }
+    .brand-main {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .brand-sub {
       font-size: 0.8rem;
-      font-weight: 400;
-      display: block;
       opacity: 0.9;
     }
 
@@ -56,17 +77,18 @@
       display: flex;
       gap: 2rem;
       list-style: none;
+      align-items: center;
     }
-
     .nav-links a {
       color: white;
       text-decoration: none;
       font-weight: 500;
-      transition: opacity 0.3s;
+      font-size: 0.95rem;
+      transition: opacity 0.3s, transform 0.2s;
     }
-
     .nav-links a:hover {
-      opacity: 0.8;
+      opacity: 0.85;
+      transform: translateY(-1px);
     }
 
     .btn-login {
@@ -76,37 +98,46 @@
       border-radius: 25px;
       text-decoration: none;
       font-weight: 600;
-      transition: transform 0.2s;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
-
     .btn-login:hover {
-      transform: scale(1.05);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
     }
 
-    /* HERO SECTION */
+    .nav-toggle {
+      display: none;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 1.6rem;
+      cursor: pointer;
+    }
+
+    /* HERO */
     .hero {
       background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
-      padding: 5rem 2rem;
+      padding: 5rem 1.5rem 4rem;
       text-align: center;
     }
-
     .hero-content {
       max-width: 800px;
       margin: 0 auto;
     }
-
     .hero h1 {
       font-size: 3rem;
       color: #00695c;
       margin-bottom: 1rem;
+      letter-spacing: -0.03em;
     }
-
     .hero p {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       color: #00796b;
       margin-bottom: 2rem;
     }
-
     .hero-buttons {
       display: flex;
       gap: 1rem;
@@ -121,41 +152,43 @@
       font-weight: 600;
       transition: all 0.3s;
       display: inline-block;
+      font-size: 0.97rem;
     }
-
     .btn-primary {
       background: #00bcd4;
       color: white;
       box-shadow: 0 4px 15px rgba(0,188,212,0.3);
     }
-
     .btn-primary:hover {
       background: #0097a7;
       transform: translateY(-2px);
     }
-
     .btn-secondary {
       background: white;
       color: #00bcd4;
       border: 2px solid #00bcd4;
     }
-
     .btn-secondary:hover {
       background: #00bcd4;
       color: white;
     }
 
-    /* FEATURES SECTION */
-    .features {
-      padding: 4rem 2rem;
-      background: white;
+    .features,
+    .contact {
+      padding: 4rem 1.5rem;
+      background: #fff;
+    }
+    .about {
+      padding: 4rem 1.5rem;
+      background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
     }
 
     .section-title {
       text-align: center;
-      font-size: 2.5rem;
+      font-size: 2.3rem;
       color: #00695c;
-      margin-bottom: 3rem;
+      margin-bottom: 2.5rem;
+      letter-spacing: -0.02em;
     }
 
     .features-grid {
@@ -165,55 +198,46 @@
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 2rem;
     }
-
     .feature-card {
       background: #f8f9fa;
-      padding: 2rem;
+      padding: 2rem 1.7rem;
       border-radius: 15px;
       text-align: center;
       transition: transform 0.3s, box-shadow 0.3s;
     }
-
     .feature-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
-
     .feature-icon {
-      font-size: 3rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
     }
-
     .feature-card h3 {
       color: #00695c;
-      margin-bottom: 1rem;
+      margin-bottom: 0.6rem;
     }
-
-    /* ABOUT SECTION */
-    .about {
-      padding: 4rem 2rem;
-      background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+    .feature-card p {
+      color: #555;
+      font-size: 0.96rem;
     }
 
     .about-content {
       max-width: 900px;
       margin: 0 auto;
     }
-
     .about-content p {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       line-height: 1.8;
       margin-bottom: 1rem;
       color: #004d40;
     }
-
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 2rem;
       margin-top: 3rem;
     }
-
     .stat-box {
       background: white;
       padding: 2rem;
@@ -221,64 +245,57 @@
       text-align: center;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-
     .stat-box h2 {
       color: #00bcd4;
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
+      font-size: 2.2rem;
+      margin-bottom: 0.4rem;
     }
-
     .stat-box p {
       color: #666;
-      font-size: 1rem;
-    }
-
-    /* CONTACT SECTION */
-    .contact {
-      padding: 4rem 2rem;
-      background: white;
+      font-size: 0.95rem;
     }
 
     .contact-container {
       max-width: 1000px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.1fr 1fr;
       gap: 3rem;
+      align-items: flex-start;
     }
-
     .contact-form {
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      background: #f8fafc;
+      padding: 1.8rem 1.6rem;
+      border-radius: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
-
     .form-group {
       display: flex;
       flex-direction: column;
+      gap: 0.4rem;
     }
-
     .form-group label {
-      margin-bottom: 0.5rem;
       color: #00695c;
       font-weight: 600;
+      font-size: 0.95rem;
     }
-
     .form-group input,
     .form-group textarea {
       padding: 0.8rem;
       border: 2px solid #e0e0e0;
       border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s;
+      font-size: 0.95rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
-
     .form-group input:focus,
     .form-group textarea:focus {
       outline: none;
       border-color: #00bcd4;
+      box-shadow: 0 0 0 2px rgba(0,188,212,0.15);
     }
-
     .form-group textarea {
       resize: vertical;
       min-height: 120px;
@@ -288,112 +305,91 @@
       color: #00695c;
       margin-bottom: 1.5rem;
     }
-
     .contact-item {
       display: flex;
-      align-items: start;
+      align-items: flex-start;
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
-
     .contact-item-icon {
       font-size: 1.5rem;
       color: #00bcd4;
     }
-
     .contact-item-text h4 {
       color: #00695c;
       margin-bottom: 0.3rem;
+      font-size: 1rem;
     }
-
     .contact-item-text p {
       color: #666;
+      font-size: 0.95rem;
     }
 
-    /* MESSAGE STYLES */
-    .messages {
-      margin-bottom: 1rem;
-    }
-
-    .messages ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .messages li {
-      padding: 0.8rem;
-      border-radius: 8px;
-      margin-bottom: 0.5rem;
-    }
-
-    .messages .success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .messages .error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-    /* FOOTER */
     .footer {
       background: #00695c;
       color: white;
       text-align: center;
-      padding: 2rem;
+      padding: 2rem 1.5rem;
+      margin-top: 2rem;
     }
-
-    .footer p {
-      margin-bottom: 0.5rem;
-    }
-
     .footer-links {
       display: flex;
-      gap: 2rem;
+      gap: 1.7rem;
       justify-content: center;
-      margin-top: 1rem;
+      margin-top: 0.7rem;
+      flex-wrap: wrap;
     }
-
     .footer-links a {
       color: white;
       text-decoration: none;
+      font-size: 0.9rem;
+      opacity: 0.9;
       transition: opacity 0.3s;
     }
+    .footer-links a:hover { opacity: 1; }
 
-    .footer-links a:hover {
-      opacity: 0.7;
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 11000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 400px;
+    }
+    .toast {
+      background: #10b981;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-weight: 600;
+      min-width: 250px;
+      max-width: 400px;
+      cursor: pointer;
+      opacity: 1;
+      transform: translateX(0);
+      transition: all 0.4s ease;
+      font-size: 0.95rem;
     }
 
-    /* MOBILE RESPONSIVE */
+    @media (max-width: 900px) {
+      .contact-container { grid-template-columns: 1fr; }
+    }
     @media (max-width: 768px) {
-      .hero h1 {
-        font-size: 2rem;
-      }
+      .nav-links { display: none; }
+      .nav-toggle { display: block; }
 
-      .nav-links {
-        display: none;
-      }
-
-      .contact-container {
-        grid-template-columns: 1fr;
-      }
-
-      .section-title {
-        font-size: 2rem;
-      }
-
-      .hero-buttons {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .btn {
-        width: 100%;
-        max-width: 250px;
-      }
+      .hero { padding: 4rem 1.2rem 3.5rem; }
+      .hero h1 { font-size: 2.2rem; }
+      .section-title { font-size: 2rem; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .btn { width: 100%; max-width: 260px; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.9rem; }
+      .hero p { font-size: 1rem; }
     }
   </style>
 </head>
@@ -402,16 +398,25 @@
   <!-- NAVIGATION -->
   <nav class="navbar">
     <div class="nav-container">
-      <a href="#home" class="logo">
-        MediCare Pro
-        <span>Healthcare Management</span>
+      <a href="#home" class="brand-section">
+        <div class="brand-logo-box">
+          <img src="{% static 'logo2.0.png' %}" alt="MediCare Pro logo">
+        </div>
+        <div class="brand-text">
+          <span class="brand-main">MediCare Pro</span>
+          <span class="brand-sub">Healthcare Management</span>
+        </div>
       </a>
-      <ul class="nav-links">
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+
+      <ul class="nav-links" id="navLinks">
         <li><a href="#home">Home</a></li>
         <li><a href="#features">Features</a></li>
         <li><a href="#about">About</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
+
       <a href="{% url 'login' %}" class="btn-login">Login</a>
     </div>
   </nav>
@@ -420,7 +425,7 @@
   <section id="home" class="hero">
     <div class="hero-content">
       <h1>Welcome to MediCare Pro</h1>
-      <p>Modern Healthcare Management System for Hospitals, Clinics, and Medical Centers</p>
+      <p>Modern Healthcare Management System for Hospitals, Clinics, and Medical Centers.</p>
       <div class="hero-buttons">
         <a href="{% url 'login' %}" class="btn btn-primary">Get Started</a>
         <a href="#about" class="btn btn-secondary">Learn More</a>
@@ -432,36 +437,36 @@
   <section id="features" class="features">
     <h2 class="section-title">Our Features</h2>
     <div class="features-grid">
-      <div class="feature-card">
+      <article class="feature-card">
         <div class="feature-icon">👨‍⚕️</div>
         <h3>Doctor Management</h3>
         <p>Manage doctor profiles, schedules, specializations, and availability with ease.</p>
-      </div>
-      <div class="feature-card">
+      </article>
+      <article class="feature-card">
         <div class="feature-icon">📅</div>
         <h3>Appointment Scheduling</h3>
         <p>Book, reschedule, and manage appointments with automated reminders.</p>
-      </div>
-      <div class="feature-card">
+      </article>
+      <article class="feature-card">
         <div class="feature-icon">👥</div>
         <h3>Patient Records</h3>
         <p>Secure electronic health records with complete patient history tracking.</p>
-      </div>
-      <div class="feature-card">
+      </article>
+      <article class="feature-card">
         <div class="feature-icon">💊</div>
         <h3>Prescription Management</h3>
         <p>Digital prescriptions, medication tracking, and pharmacy integration.</p>
-      </div>
-      <div class="feature-card">
+      </article>
+      <article class="feature-card">
         <div class="feature-icon">📊</div>
         <h3>Analytics Dashboard</h3>
         <p>Real-time insights with comprehensive reports and data visualization.</p>
-      </div>
-      <div class="feature-card">
+      </article>
+      <article class="feature-card">
         <div class="feature-icon">🔒</div>
-        <h3>Secure & Compliant</h3>
-        <p>HIPAA-compliant data security with role-based access control.</p>
-      </div>
+        <h3>Secure &amp; Compliant</h3>
+        <p>Role-based access control and secure data handling for your organization.</p>
+      </article>
     </div>
   </section>
 
@@ -470,17 +475,16 @@
     <div class="about-content">
       <h2 class="section-title">About MediCare Pro</h2>
       <p>
-        MediCare Pro is a comprehensive healthcare management system designed to streamline 
+        MediCare Pro is a comprehensive healthcare management system designed to streamline
         hospital operations, improve patient care, and enhance medical staff efficiency.
       </p>
       <p>
-        Our platform brings together doctors, receptionists, and patients in a unified system 
-        that simplifies appointment scheduling, medical record management, and administrative tasks.
+        The platform brings together doctors, receptionists, and patients in a unified system
+        that simplifies appointment scheduling, medical record management, and daily workflows.
       </p>
       <p>
-        With advanced features like real-time analytics, secure data storage, and intuitive 
-        user interfaces, MediCare Pro empowers healthcare providers to focus on what matters 
-        most - delivering excellent patient care.
+        With real-time analytics, secure data storage, and intuitive interfaces, MediCare Pro
+        lets healthcare teams focus on delivering excellent patient care.
       </p>
 
       <div class="stats">
@@ -494,7 +498,7 @@
         </div>
         <div class="stat-box">
           <h2>99.9%</h2>
-          <p>Uptime Guarantee</p>
+          <p>Uptime Target</p>
         </div>
       </div>
     </div>
@@ -506,15 +510,6 @@
     <div class="contact-container">
       <form class="contact-form" method="post" action="">
         {% csrf_token %}
-        {% if messages %}
-          <div class="messages">
-            {% for message in messages %}
-              <div class="{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% endif %}">
-                {{ message }}
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
         <div class="form-group">
           <label for="name">Full Name *</label>
           <input type="text" id="name" name="name" required>
@@ -561,7 +556,7 @@
           <div class="contact-item-icon">🕐</div>
           <div class="contact-item-text">
             <h4>Business Hours</h4>
-            <p>Monday - Saturday: 8 AM - 8 PM<br>Sunday: 9 AM - 5 PM</p>
+            <p>Mon – Sat: 8 AM – 8 PM<br>Sunday: 9 AM – 5 PM</p>
           </div>
         </div>
       </div>
@@ -580,20 +575,57 @@
     </div>
   </footer>
 
-  <!-- SMOOTH SCROLL SCRIPT -->
+  <!-- Toast container -->
+  <div id="toast-container" class="toast-container"></div>
+
   <script>
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
-      });
+    // Mobile nav toggle
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+
+    navToggle.addEventListener('click', () => {
+      const visible = navLinks.style.display === 'flex';
+      navLinks.style.display = visible ? 'none' : 'flex';
+      navLinks.style.flexDirection = visible ? '' : 'column';
+      navLinks.style.gap = visible ? '' : '1rem';
     });
+
+    // Toast helper (can be used when you later post contact form)
+    const Toast = {
+      container: document.getElementById('toast-container'),
+      show(message, type='info', duration=5000) {
+        if (!this.container) return;
+        const colors = {
+          success: '#10b981',
+          error: '#ef4444',
+          warning: '#f59e0b',
+          info: '#3b82f6',
+          danger: '#ef4444',
+        };
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.style.background = colors[type] || colors.info;
+        t.textContent = message;
+        t.onclick = () => {
+          t.style.opacity = '0';
+          t.style.transform = 'translateX(100%)';
+          setTimeout(() => t.remove(), 400);
+        };
+        setTimeout(() => {
+          t.style.opacity = '0';
+          t.style.transform = 'translateX(100%)';
+          setTimeout(() => t.remove(), 400);
+        }, duration);
+        this.container.appendChild(t);
+      }
+    };
+
+    // If you later pass Django messages to this page, you can turn them into toasts:
+    {% if messages %}
+      {% for message in messages %}
+        Toast.show("{{ message|escapejs }}", "{{ message.tags|default:'info' }}");
+      {% endfor %}
+    {% endif %}
   </script>
 
 </body>

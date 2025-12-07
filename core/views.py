@@ -103,63 +103,93 @@ def _is_ajax_request(request):
 # === PASSWORD RESET FLOW ===
 @require_http_methods(["GET", "POST"])
 def forgot_password_request(request):
-    """Handle forgot password request and send OTP."""
+    """Handle forgot password request and send OTP only for active accounts."""
     if request.method == "POST":
         data = _parse_request_data(request)
         form = ForgotPasswordForm(data)
-        
+
         if form.is_valid():
             email = form.cleaned_data["email"].strip().lower()
-            user = User.objects.filter(email__iexact=email).first()
-            patient = Patient.objects.filter(email__iexact=email).first() if not user else None
-            
-            if user or patient:
-                code = f"{secrets.randbelow(10**6):06d}"
-                PasswordOTP.objects.create(
-                    user=user,
-                    patient=patient,
-                    code=code
+
+            # 1) Try active User with this email
+            user = User.objects.filter(email__iexact=email, is_active=True).first()
+
+            # 2) If no User, try Patient whose related User has this email
+            patient = None
+            if not user:
+                patient_qs = Patient.objects.select_related("user").filter(
+                    user__email__iexact=email
                 )
-                
-                if settings.DEBUG:
-                    print(f"OTP for {email}: {code}")
-                
-                # Send email (non-blocking)
-                try:
-                    name = (user.get_full_name() or user.username) if user else (
-                        f"{patient.first_name or ''} {patient.last_name or ''}".strip() or email
+                if hasattr(Patient, "is_active"):
+                    patient_qs = patient_qs.filter(is_active=True)
+                if hasattr(User, "is_active"):
+                    patient_qs = patient_qs.filter(user__is_active=True)
+                patient = patient_qs.first()
+
+            # If no active account found
+            if not user and not patient:
+                msg = (
+                    "Email not found or account is inactive. "
+                    "Please contact admin or receptionist."
+                )
+                if _is_ajax_request(request):
+                    return JsonResponse({"ok": False, "msg": msg}, status=400)
+                messages.error(request, msg)
+                return redirect("forgot-password")
+
+            # 3) We have an active account → generate OTP
+            code = f"{secrets.randbelow(10**6):06d}"
+            PasswordOTP.objects.create(
+                user=user,
+                patient=patient,
+                code=code,
+            )
+
+            if settings.DEBUG:
+                print(f"OTP for {email}: {code}")
+
+            # 4) Send email (best‑effort)
+            try:
+                if user:
+                    name = (user.get_full_name() or user.username or email).strip()
+                    target_email = user.email
+                else:
+                    name = (
+                        f"{patient.first_name or ''} {patient.last_name or ''}".strip()
+                        or email
                     )
-                    message = (
-                        f"Hello {name},\n\n"
-                        f"Your password reset code is: {code}\n"
-                        f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n\n"
-                        "If you did not request this, ignore this email."
-                    )
-                    send_mail(
-                        "Your MediCare Pro password reset code",
-                        message,
-                        settings.DEFAULT_FROM_EMAIL,
-                        [email],
-                        fail_silently=True
-                    )
-                except Exception as e:
-                    logger.error(f"OTP email failed: {e}")
-            
+                    target_email = patient.user.email
+
+                message = (
+                    f"Hello {name},\n\n"
+                    f"Your password reset code is: {code}\n"
+                    f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n\n"
+                    "If you did not request this, ignore this email."
+                )
+                send_mail(
+                    "Your MediCare Pro password reset code",
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [target_email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                logger.error(f"OTP email failed for {email}: {e}")
+
+            success_msg = "OTP sent to your email."
             if _is_ajax_request(request):
-                return JsonResponse({
-                    "ok": True,
-                    "msg": "If an account exists, a code has been sent."
-                })
-            messages.success(request, "If an account exists, a code has been sent.")
+                return JsonResponse({"ok": True, "msg": success_msg})
+            messages.success(request, success_msg)
             return redirect(reverse("verify-otp") + f"?email={email}")
-        
+
+        # form invalid
         if _is_ajax_request(request):
             return JsonResponse({"ok": False, "errors": form.errors}, status=400)
         messages.error(request, "Please enter a valid email.")
-    
+
+    # GET
     form = ForgotPasswordForm()
     return render(request, "core/forgot_password_inline.html", {"form": form})
-
 
 @require_http_methods(["GET", "POST"])
 def verify_otp(request):
@@ -168,40 +198,49 @@ def verify_otp(request):
         if _is_ajax_request(request):
             return JsonResponse({"ok": False, "msg": "POST required"}, status=400)
         return redirect("forgot-password")
-    
+
     data = _parse_request_data(request)
     if "code" in data and "otp" not in data:
         data = dict(data, otp=data["code"])
-    
+
     form = VerifyOTPForm(data)
     if not form.is_valid():
         if _is_ajax_request(request):
             return JsonResponse({"ok": False, "errors": form.errors}, status=400)
         messages.error(request, "Please provide valid email and 6-digit code.")
         return redirect("forgot-password")
-    
+
     email = form.cleaned_data["email"].strip().lower()
     otp_value = form.cleaned_data.get("otp") or form.cleaned_data.get("code")
-    
-    # Find target and OTP
+
+    # Find target user / patient by email
     user = User.objects.filter(email__iexact=email).first()
-    patient = Patient.objects.filter(email__iexact=email).first() if not user else None
-    
+
+    patient = None
+    if not user:
+        patient_qs = Patient.objects.select_related("user").filter(
+            user__email__iexact=email
+        )
+        patient = patient_qs.first()
+
+    # Build OTP queryset
     otp_qs = PasswordOTP.objects.none()
     if user:
         otp_qs |= PasswordOTP.objects.filter(user=user, code=otp_value, is_used=False)
     if patient:
-        otp_qs |= PasswordOTP.objects.filter(patient=patient, code=otp_value, is_used=False)
-    
+        otp_qs |= PasswordOTP.objects.filter(
+            patient=patient, code=otp_value, is_used=False
+        )
+
     otp_qs = otp_qs.order_by("-created_at")
     if not otp_qs.exists():
         if _is_ajax_request(request):
             return JsonResponse({"ok": False, "msg": "Invalid code"}, status=400)
         messages.error(request, "Invalid code.")
         return redirect("forgot-password")
-    
+
     otp = otp_qs.first()
-    
+
     # Check expiry
     now = timezone.now()
     expired = (otp.created_at + timedelta(minutes=OTP_EXPIRY_MINUTES)) < now
@@ -210,8 +249,8 @@ def verify_otp(request):
             return JsonResponse({"ok": False, "msg": "Code expired"}, status=400)
         messages.error(request, "Code expired. Request a new one.")
         return redirect("forgot-password")
-    
-    # Check attempts
+
+    # Check attempts and mark used
     with transaction.atomic():
         otp.refresh_from_db()
         if otp.is_used:
@@ -219,23 +258,23 @@ def verify_otp(request):
                 return JsonResponse({"ok": False, "msg": "Code already used"}, status=400)
             messages.error(request, "Code already used.")
             return redirect("forgot-password")
-        
+
         PasswordOTP.objects.filter(pk=otp.pk).update(attempts=F("attempts") + 1)
         otp.refresh_from_db(fields=["attempts"])
-        
+
         if (otp.attempts or 0) > OTP_MAX_ATTEMPTS:
             if _is_ajax_request(request):
                 return JsonResponse({"ok": False, "msg": "Too many attempts"}, status=400)
             messages.error(request, "Too many attempts.")
             return redirect("forgot-password")
-        
+
         otp.is_used = True
         otp.save(update_fields=["is_used"])
-    
-    # Set session
+
+    # Set session for reset step
     request.session["password_reset_otp_id"] = otp.pk
     request.session["password_reset_email"] = email
-    
+
     if _is_ajax_request(request):
         return JsonResponse({"ok": True, "msg": "Code verified successfully"})
     messages.success(request, "Code verified. Set your new password.")
@@ -249,22 +288,24 @@ def forgot_password_reset(request):
     if not otp_id:
         messages.error(request, "Please verify OTP first.")
         return redirect("forgot-password")
-    
+
     try:
-        otp = PasswordOTP.objects.get(pk=otp_id, is_used=True)
+        otp = PasswordOTP.objects.select_related("user", "patient", "patient__user").get(
+            pk=otp_id, is_used=True
+        )
     except PasswordOTP.DoesNotExist:
         messages.error(request, "Reset session invalid. Start again.")
         for key in ["password_reset_otp_id", "password_reset_email"]:
             request.session.pop(key, None)
         return redirect("forgot-password")
-    
+
     target_user = _get_target_user_from_otp(otp)
     if not target_user:
         messages.error(request, "No account found.")
         for key in ["password_reset_otp_id", "password_reset_email"]:
             request.session.pop(key, None)
         return redirect("forgot-password")
-    
+
     if request.method == "POST":
         form = SetPasswordForm(user=target_user, data=request.POST)
         if form.is_valid():
@@ -275,12 +316,25 @@ def forgot_password_reset(request):
             return redirect("login")
     else:
         form = SetPasswordForm(user=target_user)
-    
-    return render(request, "core/forgot_password_inline.html", {
-        "form": form,
-        "reset_user": target_user,
-        "reset_email": otp.patient.email if otp.patient else otp.user.email,
-    })
+
+    # Choose the correct email to display (patient.user.email if patient exists)
+    reset_email = None
+    if getattr(otp, "patient", None):
+        if getattr(otp.patient, "user", None):
+            reset_email = otp.patient.user.email
+    if not reset_email and getattr(otp, "user", None):
+        reset_email = otp.user.email
+
+    return render(
+        request,
+        "core/forgot_password_inline.html",
+        {
+            "form": form,
+            "reset_user": target_user,
+            "reset_email": reset_email,
+        },
+    )
+
 
 
 # === ACCOUNT MANAGEMENT ===
@@ -375,22 +429,6 @@ def account_settings(request):
     return render(request, "core/account_settings.html", context)
 
 
-@login_required
-def rename_username(request):
-    """Rename username for logged-in user."""
-    if request.method == "POST":
-        form = RenameUsernameForm(request.POST, current_user=request.user)
-        if form.is_valid():
-            request.user.username = form.cleaned_data['new_username']
-            request.user.save(update_fields=['username'])
-            messages.success(request, "Username updated successfully.")
-            return redirect('rename-username')
-        messages.error(request, "Please correct the error.")
-    else:
-        form = RenameUsernameForm(current_user=request.user)
-    
-    return render(request, "core/rename_username.html", {"form": form})
-
 
 @login_required
 def password_manage(request):
@@ -405,7 +443,7 @@ def password_manage(request):
     else:
         form = PasswordChangeForm(user=request.user)
     
-    return render(request, "core/password_manage.html", {"form": form, "mode": "change"})
+    return render(request, "core/login.html", {"form": form, "mode": "change"})
 
 
 # === AUTH VIEWS ===

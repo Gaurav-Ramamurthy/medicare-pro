@@ -11,7 +11,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #fafafaff, #fafafaff);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -19,7 +19,7 @@
       padding: 20px;
     }
     .registration-container {
-      background: #fafbfc; /* Light white shade */
+      background: #fafbfc;
       border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.15);
       max-width: 850px;
@@ -36,7 +36,7 @@
     .registration-header p { font-size: 16px; opacity: 0.95; }
     .registration-form { 
       padding: 40px; 
-      background: #ffffff; /* Pure white form background */
+      background: #ffffff;
     }
     .form-section { margin-bottom: 30px; }
     .form-section-title {
@@ -101,10 +101,7 @@
     }
 
     .error-message { color: #ef4444; font-size: 13px; margin-top: 6px; display: block; }
-    .success-message {
-      background: #d1fae5; color: #065f46; padding: 16px; border-radius: 10px;
-      margin-bottom: 20px; border-left: 4px solid #10b981;
-    }
+
     .form-actions { display: flex; gap: 16px; margin-top: 30px; flex-wrap: wrap; }
     .btn { 
       padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; 
@@ -118,6 +115,7 @@
     .login-link { text-align: center; margin-top: 20px; color: #666; }
     .login-link a { color: #00bcd4; text-decoration: none; font-weight: 600; }
     .login-link a:hover { text-decoration: underline; }
+
     @media (max-width: 768px) {
       .registration-header { padding: 30px 20px; }
       .registration-header h1 { font-size: 26px; }
@@ -127,21 +125,43 @@
       .form-actions { flex-direction: column; }
       .btn { width: 100%; min-width: auto; }
     }
+
+    /* Toast styles (same pattern as layout template) */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 11000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 400px;
+    }
+    .toast {
+      background: #10b981;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-weight: 600;
+      min-width: 250px;
+      max-width: 400px;
+      cursor: pointer;
+      opacity: 1;
+      transform: translateX(0);
+      transition: all 0.4s ease;
+    }
   </style>
 </head>
 <body>
   <div class="registration-container">
     <div class="registration-header">
-      <h1>🏥 Patient Registration</h1>
+      <h1> Patient Registration</h1>
       <p>Fill in the patient information below</p>
     </div>
 
     <div class="registration-form">
-      {% if messages %}
-        {% for message in messages %}
-          <div class="success-message">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
+      <!-- no inline message boxes; toasts will handle feedback -->
 
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -183,7 +203,6 @@
             <div class="form-group">
               <label>Phone Number <span class="required">*</span></label>
               <input type="tel" name="phone" required pattern="^(\+91\s?[0-9]{10}|[0-9]{10})$" placeholder="+91 1234567890">
-              <div class="help-text">Format: +91 1234567890 or 1234567890</div>
             </div>
             <div class="form-group">
               <label>Email Address <span class="required">*</span></label>
@@ -195,7 +214,6 @@
             <div class="form-group">
               <label>Emergency Contact</label>
               <input type="tel" name="emergency_contact" placeholder="Another phone for emergencies">
-              <div class="help-text">Another phone for emergencies</div>
             </div>
             <div class="form-group">
               <label>Blood Group</label>
@@ -240,7 +258,9 @@
               <label>Password <span class="required">*</span></label>
               <div class="pw-wrap">
                 <input type="password" name="password" id="id_password" required>
-                <svg id="togglePassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg id="togglePassword" xmlns="http://www.w3.org/2000/svg" width="22" height="22" 
+                viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" 
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                   <circle cx="12" cy="12" r="3"/>
                 </svg>
@@ -290,9 +310,12 @@
     </div>
   </div>
 
+  <!-- Toast container -->
+  <div id="toast-container" class="toast-container"></div>
+
   <script>
-    // Past date validation for DOB
     document.addEventListener('DOMContentLoaded', function() {
+      // Past date validation for DOB
       const dobField = document.getElementById('dobField');
       if (dobField) {
         const today = new Date().toISOString().split('T')[0];
@@ -317,13 +340,12 @@
           }
         });
         
-        // Click preview to trigger file input
         photoPreview.addEventListener('click', function() {
           photoInput.click();
         });
       }
 
-      // Password eye toggle
+      // Password eye toggle (same as login)
       const togglePassword = document.getElementById('togglePassword');
       const passwordField = document.getElementById('id_password');
       if (togglePassword && passwordField) {
@@ -331,25 +353,60 @@
         togglePassword.addEventListener('click', function() {
           showing = !showing;
           passwordField.type = showing ? 'text' : 'password';
-          togglePassword.innerHTML = showing
-            ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-            : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+
+          if (showing) {
+            // eye-slash
+            togglePassword.innerHTML =
+              '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>' +
+              '<line x1="1" y1="1" x2="23" y2="23"></line>';
+          } else {
+            // normal eye
+            togglePassword.innerHTML =
+              '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>' +
+              '<circle cx="12" cy="12" r="3"></circle>';
+          }
         });
       }
 
-      // Confirm password eye toggle
-      const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-      const confirmPasswordField = document.getElementById('id_confirm_password');
-      if (toggleConfirmPassword && confirmPasswordField) {
-        let showingConfirm = false;
-        toggleConfirmPassword.addEventListener('click', function() {
-          showingConfirm = !showingConfirm;
-          confirmPasswordField.type = showingConfirm ? 'text' : 'password';
-          toggleConfirmPassword.innerHTML = showingConfirm
-            ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-            : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-        });
-      }
+      // Django messages → toasts (same behavior as layout)
+      {% if messages %}
+        const toastContainer = document.getElementById('toast-container');
+
+        {% for message in messages %}
+          (function(delay, level, text) {
+            setTimeout(function() {
+              const toast = document.createElement('div');
+              toast.className = 'toast';
+
+              const colors = {
+                'success': '#10b981',
+                'error': '#ef4444',
+                'warning': '#f59e0b',
+                'info': '#3b82f6',
+                'danger': '#ef4444'
+              };
+              toast.style.background = colors[level] || '#3b82f6';
+              toast.textContent = text;
+
+              toast.onclick = function() {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 400);
+              };
+
+              setTimeout(function() {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 400);
+              }, 5000);
+
+              toastContainer.appendChild(toast);
+            }, delay);
+          })({{ forloop.counter0 }} * 200,
+              "{{ message.tags|default:'info' }}",
+              "{{ message|escapejs }}");
+        {% endfor %}
+      {% endif %}
     });
   </script>
 </body>

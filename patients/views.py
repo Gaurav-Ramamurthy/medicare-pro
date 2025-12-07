@@ -36,45 +36,72 @@ def is_admin_or_receptionist(user):
 # =====================================
 # PATIENT REGISTRATION (PUBLIC)
 # =====================================
+
 def patient_register(request):
     """Patient registration saves request (not Patient) for admin approval."""
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        date_of_birth = request.POST.get('date_of_birth')
-        gender = request.POST.get('gender')
-        phone = request.POST.get('phone')
-        address = request.POST.get('address')
-        blood_group = request.POST.get('blood_group', '')
-        emergency_contact = request.POST.get('emergency_contact', '')
-        medical_history = request.POST.get('medical_history', '')
-        photo = request.FILES.get('photo')
+    if request.method == "POST":
+        print("DEBUG: patient_register POST hit")
 
-        # Validate required fields
-        required_fields = [username, email, password, password_confirm, first_name, last_name, date_of_birth, gender, phone, address]
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        password_confirm = request.POST.get("password_confirm", "")
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        date_of_birth = request.POST.get("date_of_birth")
+        gender = request.POST.get("gender", "")
+        phone = request.POST.get("phone", "").strip()
+        address = request.POST.get("address", "").strip()
+        blood_group = request.POST.get("blood_group", "")
+        emergency_contact = request.POST.get("emergency_contact", "")
+        medical_history = request.POST.get("medical_history", "")
+        photo = request.FILES.get("photo")
+
+        # 1) Required fields check
+        required_fields = [
+            username,
+            email,
+            password,
+            password_confirm,
+            first_name,
+            last_name,
+            date_of_birth,
+            gender,
+            phone,
+            address,
+        ]
         if not all(required_fields):
-            messages.error(request, 'Please fill all required fields.')
-            return render(request, 'patients/patient_register.html')
+            print("DEBUG: required fields missing")
+            messages.error(request, "Please fill all required fields.")
+            return render(request, "patients/patient_register.html")
 
+        # 2) Passwords match
         if password != password_confirm:
-            messages.error(request, 'Passwords do not match!')
-            return render(request, 'patients/patient_register.html')
+            print("DEBUG: passwords mismatch")
+            messages.error(request, "Passwords do not match!")
+            return render(request, "patients/patient_register.html")
 
-        if User.objects.filter(username=username).exists() or PatientRequest.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists or pending approval!')
-            return render(request, 'patients/patient_register.html')
+        # 3) Username uniqueness
+        if User.objects.filter(username=username).exists() or PatientRequest.objects.filter(
+            username=username
+        ).exists():
+            print("DEBUG: username exists or pending")
+            messages.error(request, "Username already exists or pending approval!")
+            return render(request, "patients/patient_register.html")
 
-        if User.objects.filter(email=email).exists() or PatientRequest.objects.filter(email=email).exists():
-            messages.error(request, 'Email already registered or pending approval!')
-            return render(request, 'patients/patient_register.html')
+        # 4) Email uniqueness
+        if User.objects.filter(email=email).exists() or PatientRequest.objects.filter(
+            email=email
+        ).exists():
+            print("DEBUG: email exists or pending")
+            messages.error(request, "Email already registered or pending approval!")
+            return render(request, "patients/patient_register.html")
 
+        # 5) Hash password
         password_hash = make_password(password)
 
-        PatientRequest.objects.create(
+        # 6) Create pending request
+        pr = PatientRequest.objects.create(
             username=username,
             password_hash=password_hash,
             first_name=first_name,
@@ -88,13 +115,19 @@ def patient_register(request):
             emergency_contact=emergency_contact,
             medical_history=medical_history,
             photo=photo,
-            requested_by=request.user if request.user.is_authenticated else None
+            requested_by=request.user if request.user.is_authenticated else None,
+            status="pending",  # ensure it appears in patient_requests_list
         )
+        print("DEBUG: PatientRequest created with id", pr.id)
 
-        messages.success(request, 'Registration request received with photo! Await admin approval.')
-        return redirect('home')
+        messages.success(
+            request,
+            "Registration request received with photo! Await admin approval.",
+        )
+        return redirect("patient_register")
 
-    return render(request, 'patients/patient_register.html')
+    # GET
+    return render(request, "patients/patient_register.html")
 
 
 # =====================================

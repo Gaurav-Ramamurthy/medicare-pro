@@ -31,21 +31,24 @@
     }
     .brand {
       text-align:center;
-      margin-bottom:6px;
+      margin-bottom:2px;
       font-weight:800;
       color:#0f172a;
-      font-size:1.2rem;
+      font-size:1.3rem;
       letter-spacing:0.02em;
+      margin-left:115px;
     }
     .brand-sub {
       display:block;
       font-size:0.85rem;
       color:#64748b;
-      margin-bottom:18px;
+      margin-top:10px;
+      margin-bottom:0px;
       font-weight:600;
       text-align:center;
+      
     }
-    h2 { margin:0 0 8px 0; text-align:center; font-size:1.25rem; color:#0f172a; }
+    h2 { margin: 0 8px 0; text-align:center; font-size:1.25rem; color:#0f172a; }
     .muted { color:#64748b; text-align:center; margin-bottom:14px; font-size:0.95rem; }
 
     label { display:block; margin-bottom:6px; font-weight:600; color:#334155; font-size:0.95rem; }
@@ -111,17 +114,18 @@
       width:100%;
       padding:10px 12px;
       border-radius:10px;
-      background: linear-gradient(90deg,#0ea5a4,#06b6d4);
       border:none;
       color:#fff;
       font-weight:800;
       font-size:1rem;
       cursor:pointer;
       transition: all 0.3s ease;
+      background: #00bcd4; color: white;
     }
     .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(14,165,164,0.3);
+      background: #00acc1; 
+      transform: translateY(-2px); 
+      box-shadow: 0 8px 20px rgba(0,188,212,0.3);
     }
 
     .messages { list-style:none; padding:0; margin:0 0 12px 0; }
@@ -189,7 +193,9 @@
 </head>
 <body>
   <div class="auth-wrap" role="main" aria-labelledby="login-heading">
-    <div class="brand">MediCare Pro <span class="brand-sub">Healthcare Management</span></div>
+    <div class="brand">MediCare Pro</div>
+    <div>
+    <span class="brand-sub">Healthcare Management</span></div>
 
     <h2 id="login-heading">Sign in to MediCare Pro</h2>
     <div class="muted">Enter your username and password to continue</div>
