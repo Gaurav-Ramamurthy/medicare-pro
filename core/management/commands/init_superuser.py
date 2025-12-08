@@ -4,10 +4,12 @@ import os
 
 User = get_user_model()
 
+
 class Command(BaseCommand):
     help = "Create initial superuser if none exists"
 
     def handle(self, *args, **options):
+        # If there is already any superuser, don't create another
         if User.objects.filter(is_superuser=True).exists():
             self.stdout.write("Superuser already exists")
             return
@@ -16,9 +18,22 @@ class Command(BaseCommand):
         email = os.getenv("DJANGO_SUPERUSER_EMAIL", "gaurav77955@gmail.com")
         password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "admin@123")
 
-        User.objects.create_superuser(
+        user = User.objects.create_superuser(
             username=username,
             email=email,
             password=password,
         )
-        self.stdout.write(self.style.SUCCESS(f"Superuser {username} created"))
+
+        # Ensure flags for admin access
+        user.is_staff = True
+        user.is_superuser = True
+
+        # If your custom user model has a role / user_type field, set it
+        if hasattr(user, "role"):
+            user.role = "admin"
+        if hasattr(user, "user_type"):
+            user.user_type = "admin"
+
+        user.save()
+
+        self.stdout.write(self.style.SUCCESS(f"Superuser {username} created/updated as admin"))
